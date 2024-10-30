@@ -1,0 +1,47 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+android {
+    namespace = "com.example.wedweb"
+    compileSdk = 34
+    ndkVersion = flutter.ndkVersion
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        applicationId "com.example.wedweb"
+        minSdkVersion 21
+        targetSdkVersion 33
+        versionCode 1
+        versionName "1.0"
+    }
+
+    signingConfigs {
+        release {
+            storeFile file('C:/Users/Salsabila Maajid/Desktop/wedwebs.keystore') 
+            storePassword 'wedweb2024' 
+            keyAlias 'joseph_kristian' 
+            keyPassword 'wedweb2024' 
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release // Ubah ke signingConfigs.release
+        }
+    }
+}
+
+flutter {
+    source = "../.."
+}
