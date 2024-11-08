@@ -155,4 +155,91 @@ class Printer1Service with ChangeNotifier {
       print('Printer not connected');
     }
   }
+
+  Future<void> printTicketEnvelope({
+    required Map<String, dynamic> guest,
+    required Map<String, dynamic>? guestDetails,
+    required String checkInTime,
+    String angpauTitipan = '',
+  }) async {
+    print('Attempting to print ticket...');
+    if (_isPrinterConnected) {
+      try {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        bool isQrEnabled = prefs.getBool('qr_enabled') ?? false;
+
+        _printer.printNewLine();
+        _printer.printCustom('E-TICKET', 2, 1);
+
+        if (isQrEnabled) {
+          _printer.printQRcode('${guest['guest_qr']}', 250, 205, 1);
+        }
+
+        _printer.printNewLine();
+        _printer.printCustom('Guest Name: ${guest['name']}', 1, 0);
+        _printer.printCustom(
+            'Headcount: ${guestDetails!['sessions'][0]['pax_checked'].toString()}',
+            1,
+            0);
+        _printer.printCustom('Category: ${guest['cat']}', 1, 0);
+        _printer.printCustom('${checkInTime}', 1, 0);
+        _printer.printNewLine();
+        _printer.printCustom(
+            'Angpau Label: ${guestDetails['sessions'][0]['angpau_label'].toString()} (${angpauTitipan})',
+            1,
+            0);
+        _printer.printNewLine();
+        _printer.printCustom('WEDWEB.COM', 2, 1);
+        _printer.printNewLine();
+        _printer.printNewLine();
+
+        print('Ticket printed successfully');
+      } catch (e) {
+        print('Error printing ticket: $e');
+      }
+    } else {
+      print('Printer not connected');
+    }
+  }
+
+  Future<void> printTicketEnvelopeBasic({
+    required Map<String, dynamic> guest,
+    String timeCheckedIn = '',
+  }) async {
+    print('Attempting to print ticket...');
+    if (_isPrinterConnected) {
+      try {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        bool isQrEnabled = prefs.getBool('qr_enabled') ?? false;
+
+        _printer.printNewLine();
+        _printer.printCustom('E-TICKET', 2, 1);
+
+        if (isQrEnabled) {
+          _printer.printQRcode('${guest['guest_qr']}', 250, 205, 1);
+        }
+
+        _printer.printNewLine();
+        _printer.printCustom('Guest Name: ${guest['name']}', 1, 0);
+        _printer.printCustom('Headcount: ', 1, 0);
+        _printer.printCustom('Category: ${guest['cat'] ?? 'blank'}', 1, 0);
+        _printer.printCustom('$timeCheckedIn', 1, 0);
+        _printer.printNewLine();
+        _printer.printCustom(
+            'Angpau Label: ${guest['angpau_label']}(${guest['angpauTitipan'] ?? ''})',
+            1,
+            0);
+        _printer.printNewLine();
+        _printer.printCustom('WEDWEB.COM', 2, 1);
+        _printer.printNewLine();
+        _printer.printNewLine();
+
+        print('Ticket printed successfully');
+      } catch (e) {
+        print('Error printing ticket: $e');
+      }
+    } else {
+      print('Printer not connected');
+    }
+  }
 }

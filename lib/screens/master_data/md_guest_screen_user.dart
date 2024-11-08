@@ -200,6 +200,7 @@ class _MDGuestScreenUserState extends State<MDGuestScreenUser> {
         builder: (context) => GuestDetailScreen(
           guest: guest,
           idServer: widget.idServer,
+          session: widget.session,
         ),
       ),
     );

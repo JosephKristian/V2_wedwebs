@@ -531,6 +531,20 @@ class _ScanQRScreenState extends State<ScanQRScreen>
     try {
       final db = await DatabaseHelper().database;
 
+      final urlPattern =
+          r"^https:\/\/rsvp\.wed-webs\.com\/tamu\/([a-zA-Z0-9\-]+)$";
+      final regExp = RegExp(urlPattern);
+
+      if (regExp.hasMatch(qrCode)) {
+        // Jika qrCode adalah URL yang valid, ambil GUESTID
+        final guestId = regExp.firstMatch(qrCode)?.group(1);
+
+        if (guestId != null) {
+          // Ubah qrCode menjadi GUESTID yang ditemukan dalam URL
+          qrCode = guestId;
+        }
+      }
+
       // Mencari guest berdasarkan qrCode
       final List<Map<String, dynamic>> maps = await db.query(
         'Guest',
@@ -679,8 +693,8 @@ class _ScanQRScreenState extends State<ScanQRScreen>
           builder: (BuildContext context) {
             return AlertDialog(
               title: Text('Guest Not Found'),
-              content:
-                  Text('No matching guest found for the provided QR code.'),
+              content: Text(
+                  'No matching guest found for the provided QR code. (${qrCode})'),
               actions: <Widget>[
                 TextButton(
                   onPressed: () {

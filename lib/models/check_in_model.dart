@@ -5,7 +5,7 @@ class CheckIn {
   final String? angpau_label;
   final int? angpau;
   int pax_checked;
-  final String? meals;
+  String? meals;
   final String? note;
   final String delivery;
   final int guestNo;

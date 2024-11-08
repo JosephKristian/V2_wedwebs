@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:wedweb/screens/dashboard_admin_screen.dart';
 import '../screens/intro_user_screen.dart';
 import '../services/database_helper.dart';
 import '../services/data_service.dart';
@@ -49,7 +50,7 @@ class _LoadingScreenState extends State<LoadingScreen>
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => IntroUserScreen(
+          builder: (context) => DashboardAdminScreen(
             idServer: widget.idServer,
             role: widget.role,
             name: widget.name,

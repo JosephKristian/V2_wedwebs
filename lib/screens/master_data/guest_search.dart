@@ -8,7 +8,8 @@ class GuestSearch extends SearchDelegate<Map<String, dynamic>> {
   final Function(String) onDeleteGuest;
   final String idServer;
 
-  GuestSearch(this.guests, this.onGuestSelected, this.onEditGuest, this.onDeleteGuest, this.idServer);
+  GuestSearch(this.guests, this.onGuestSelected, this.onEditGuest,
+      this.onDeleteGuest, this.idServer);
 
   @override
   List<Widget> buildActions(BuildContext context) {
@@ -65,22 +66,24 @@ class GuestSearch extends SearchDelegate<Map<String, dynamic>> {
               onEditGuest(guest);
             } else if (direction == DismissDirection.endToStart) {
               confirmDelete = await showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: Text('Konfirmasi'),
-                  content: Text('Apakah Anda yakin ingin menghapus tamu ini?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: Text('Batal'),
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text('Konfirmasi'),
+                      content:
+                          Text('Apakah Anda yakin ingin menghapus tamu ini?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: Text('Batal'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: Text('Hapus'),
+                        ),
+                      ],
                     ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      child: Text('Hapus'),
-                    ),
-                  ],
-                ),
-              ) ?? false; // Menangani kasus null
+                  ) ??
+                  false; // Menangani kasus null
 
               if (confirmDelete) {
                 onDeleteGuest(guest['guest_id']);
@@ -99,12 +102,12 @@ class GuestSearch extends SearchDelegate<Map<String, dynamic>> {
               subtitle: Text('Email: ${guest['email']}'),
               onTap: () {
                 onGuestSelected(guest);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => GuestDetailScreen(guest: guest, idServer: idServer ,),
-                  ),
-                );
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(
+                //     builder: (context) => GuestDetailScreen(guest: guest, idServer: idServer ,),
+                //   ),
+                // );
               },
             ),
           ),
@@ -146,22 +149,24 @@ class GuestSearch extends SearchDelegate<Map<String, dynamic>> {
               onEditGuest(guest);
             } else if (direction == DismissDirection.endToStart) {
               confirmDelete = await showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: Text('Konfirmasi'),
-                  content: Text('Apakah Anda yakin ingin menghapus tamu ini?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: Text('Batal'),
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text('Konfirmasi'),
+                      content:
+                          Text('Apakah Anda yakin ingin menghapus tamu ini?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: Text('Batal'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: Text('Hapus'),
+                        ),
+                      ],
                     ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      child: Text('Hapus'),
-                    ),
-                  ],
-                ),
-              ) ?? false; // Menangani kasus null
+                  ) ??
+                  false; // Menangani kasus null
 
               if (confirmDelete) {
                 onDeleteGuest(guest['guest_id']);
@@ -180,12 +185,15 @@ class GuestSearch extends SearchDelegate<Map<String, dynamic>> {
               subtitle: Text('Email: ${guest['email']}'),
               onTap: () {
                 onGuestSelected(guest);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => GuestDetailScreen(guest: guest, idServer: idServer,),
-                  ),
-                );
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(
+                //     builder: (context) => GuestDetailScreen(
+                //       guest: guest,
+                //       idServer: idServer,
+                //     ),
+                //   ),
+                // );
               },
             ),
           ),

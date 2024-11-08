@@ -569,6 +569,10 @@ class DatabaseHelper {
     String angpauTitipanId =
         Uuid().v4(); // Pastikan untuk menambahkan paket uuid di pubspec.yaml
 
+    // Ambil nilai counter_label dari SharedPreferences
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String counterLabelFromSP = prefs.getString('angpau_abjad') ?? 'A';
+
     await db.insert(
       'Angpau_titipan',
       {
@@ -576,7 +580,7 @@ class DatabaseHelper {
         'session_id': sessionId,
         'guest_id': guestId,
         'angpau_titipan_name': name,
-        'counter_label': counterLabel,
+        'counter_label': counterLabelFromSP,
         'amount': '0', // Atau sesuaikan dengan logika Anda
         'synced': 0, // Atur sesuai kebutuhan
       },
@@ -1029,6 +1033,7 @@ class DatabaseHelper {
     List<Map<String, dynamic>> result = await db.rawQuery('''
       SELECT DISTINCT Guest.*, 
                       Check_in.angpau_label, 
+                      Check_in.created_at, 
                       Angpau_titipan.angpau_titipan_name as angpauTitipan, 
                       Angpau_titipan.amount
       FROM Guest
@@ -1342,107 +1347,118 @@ GROUP BY
     String counterLabel = prefs.getString('angpau_abjad') ?? 'A';
 
     final query = '''
-      SELECT
-          C.name AS client_name,
-          E.event_name,
-          S.session_name,
-          (
-              SELECT COUNT(*)
-              FROM check_in CI
-              WHERE CI.status = 'checked-in'
-              AND CI.session_id = S.session_id
-          ) AS total_guest_attendance,
-          (
-              SELECT COUNT(*)
-              FROM check_in CI
-              WHERE CI.status = 'not check-in yet'
-              AND CI.session_id = S.session_id
-              AND CI.rsvp != '0'
-          ) AS total_not_checked_in,
-          (
-              SELECT COUNT(*)
-              FROM check_in CI
-              WHERE CI.rsvp = '1'
-              AND CI.session_id = S.session_id
-          ) AS total_rsvp_attend,
-          (
-              SELECT COUNT(*)
-              FROM check_in CI
-              WHERE CI.rsvp = '0'
-              AND CI.session_id = S.session_id
-          ) AS total_rsvp_unable_attend,
-          (
-              SELECT COUNT(*)
-              FROM check_in CI
-              WHERE CI.rsvp = 'pending'
-              AND CI.session_id = S.session_id
-          ) AS total_rsvp_pending,
-          (
-              SELECT COUNT(*)
-              FROM check_in CI
-              WHERE CI.session_id = S.session_id
-          ) AS total_guests,
-          SUM(G.pax) AS total_pax,
-          SUM(
-              CASE
-                  WHEN CI.status = 'checked-in' THEN CI.pax_checked
-                  ELSE 0
-              END
-          ) AS total_pax_checked,
-          SUM(
-              CASE
-                  WHEN CI.status = 'not check-in yet' THEN CI.pax_checked
-                  ELSE 0
-              END
-          ) AS total_pax_not,
-          SUM(
-              CASE
-                  WHEN CI.rsvp = '1' THEN CI.pax_checked
-                  ELSE 0
-              END
-          ) AS total_pax_rsvp_attend,
-          SUM(
-              CASE
-                  WHEN CI.rsvp = '0' THEN CI.pax_checked
-                  ELSE 0
-              END
-          ) AS total_pax_rsvp_not,
-          SUM(
-              CASE
-                  WHEN CI.rsvp = 'pending' THEN G.pax
-                  ELSE 0
-              END
-          ) AS total_pax_rsvp_pending,
-          (
-              SUM(CASE WHEN CI.angpau_label != '' THEN 1 ELSE 0 END) +
-              (
-                  SELECT COUNT(*)
-                  FROM angpau_titipan AT
-                  WHERE AT.session_id = S.session_id
-                  AND AT.guest_id = CI.guest_id
-              )
-          ) AS total_envelope,
+    SELECT
+        C.name AS client_name,
+        E.event_name,
+        S.session_name,
+        (
+            SELECT COUNT(*)
+            FROM check_in CI
+            WHERE CI.status = 'checked-in'
+            AND CI.session_id = S.session_id
+        ) AS total_guest_attendance,
+        (
+            SELECT COUNT(*)
+            FROM check_in CI
+            WHERE CI.status = 'not check-in yet'
+            AND CI.session_id = S.session_id
+            AND CI.rsvp != '0'
+        ) AS total_not_checked_in,
+        (
+            SELECT COUNT(*)
+            FROM check_in CI
+            WHERE CI.rsvp = '1'
+            AND CI.session_id = S.session_id
+        ) AS total_rsvp_attend,
+        (
+            SELECT COUNT(*)
+            FROM check_in CI
+            WHERE CI.rsvp = '0'
+            AND CI.session_id = S.session_id
+        ) AS total_rsvp_unable_attend,
+        (
+            SELECT COUNT(*)
+            FROM check_in CI
+            WHERE CI.rsvp = 'pending'
+            AND CI.session_id = S.session_id
+        ) AS total_rsvp_pending,
+        (
+            SELECT COUNT(*)
+            FROM check_in CI
+            WHERE CI.session_id = S.session_id
+        ) AS total_guests,
+        SUM(G.pax) AS total_pax,
+        SUM(
+            CASE
+                WHEN CI.status = 'checked-in' THEN CI.pax_checked
+                ELSE 0
+            END
+        ) AS total_pax_checked,
+        SUM(
+            CASE
+                WHEN CI.status = 'not check-in yet' THEN CI.pax_checked
+                ELSE 0
+            END
+        ) AS total_pax_not,
+        SUM(
+            CASE
+                WHEN CI.rsvp = '1' THEN CI.pax_checked
+                ELSE 0
+            END
+        ) AS total_pax_rsvp_attend,
+        SUM(
+            CASE
+                WHEN CI.rsvp = '0' THEN CI.pax_checked
+                ELSE 0
+            END
+        ) AS total_pax_rsvp_not,
+        SUM(
+            CASE
+                WHEN CI.rsvp = 'pending' THEN G.pax
+                ELSE 0
+            END
+        ) AS total_pax_rsvp_pending,
+        (
+            SUM(CASE WHEN CI.angpau_label != '' THEN 1 ELSE 0 END) +
+            (
+                SELECT COUNT(*)
+                FROM angpau_titipan AT
+                WHERE AT.session_id = S.session_id
+            )
+        ) AS total_envelope,
+        (
+          SUM(CASE WHEN CI.angpau_label LIKE ? || '%' THEN 1 ELSE 0 END) +
           (
               SELECT COUNT(*)
               FROM angpau_titipan AT
-              WHERE AT.counter_label = ?
-          ) AS total_envelope_counter
-      FROM
-          session S
-          JOIN event E ON S.event_id = E.event_id
-          JOIN client C ON E.client_id = C.client_id
-          LEFT JOIN check_in CI ON CI.session_id = S.session_id
-          LEFT JOIN guest G ON CI.guest_id = G.guest_id
-      WHERE
-          S.session_id = ?
-      GROUP BY
-          C.name,
-          E.event_name,
-          S.session_name,
-          S.session_id;
-  ''';
+              WHERE AT.counter_label LIKE ? || '%'
 
-    final result = await db.rawQuery(query, [counterLabel, session]);
+          )
+        ) AS total_envelope_counter, 
+        (
+              SELECT COUNT(*)
+              FROM angpau_titipan AT
+              WHERE AT.counter_label = ?
+          ) AS total_envelope_entrust_counter
+
+      
+    FROM
+        session S
+        JOIN event E ON S.event_id = E.event_id
+        JOIN client C ON E.client_id = C.client_id
+        LEFT JOIN check_in CI ON CI.session_id = S.session_id
+        LEFT JOIN guest G ON CI.guest_id = G.guest_id
+    WHERE
+        S.session_id = ?
+    GROUP BY
+        C.name,
+        E.event_name,
+        S.session_name,
+        S.session_id;
+''';
+
+    final result = await db
+        .rawQuery(query, [counterLabel, counterLabel, counterLabel, session]);
 
     if (result.isNotEmpty) {
       return result.first;
@@ -1467,9 +1483,15 @@ GROUP BY
       SELECT 
         C.name AS client_name,
         E.event_name,
+        E.date,
         S.session_name,
+        S.time,
         G.name AS guest_name,
         CI.rsvp,
+        CI.angpau_label AS angpau_label,
+        CI.pax_checked AS pax_checked,
+        CI.meals,
+        CI.created_at AS createdAt,
         CI.status
       FROM session S
       JOIN event E ON S.event_id = E.event_id
@@ -1624,7 +1646,7 @@ GROUP BY
       'Angpau',
       {
         'counter': counterValue,
-        'synced': false, // Mengatur synced menjadi false
+        'synced': false,
       },
       where: 'session_id = ? AND key = ?',
       whereArgs: [sessionId, key],
@@ -1786,6 +1808,7 @@ GROUP BY
         'guestNo': checkIn.guestNo,
         'status': 'checked-in', // Update status ke 'checked-in'
         'synced': syncedValue, // Update status ke 'checked-in'
+        'created_at': updatedAt, // Update status ke 'checked-in'
         'updated_at': updatedAt, // Update status ke 'checked-in'
       },
       where: 'session_id = ? AND guest_id = ?',

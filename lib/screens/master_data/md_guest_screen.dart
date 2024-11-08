@@ -168,15 +168,16 @@ class _MDGuestScreenState extends State<MDGuestScreen> {
 
   void _viewGuestDetails(Map<String, dynamic> guest) {
     log.info('Viewing details for guest: ${guest['guest_id']}');
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => GuestDetailScreen(
-          guest: guest,
-          idServer: widget.idServer,
-        ),
-      ),
-    );
+    // Navigator.push(
+    //   context,
+    //   MaterialPageRoute(
+    //     builder: (context) => GuestDetailScreen(
+    //       guest: guest,
+    //       idServer: widget.idServer,
+
+    //     ),
+    //   ),
+    // );
   }
 
   void _editGuest(Map<String, dynamic> guest) async {

@@ -32,6 +32,7 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   bool _isQrEnabled = false;
+  bool _isMealsEnabled = false;
   EventBus eventBus = EventBus();
   String _selectedAbjad = 'A'; // Abjad default
   List<String> _abjadList = List.generate(
@@ -41,6 +42,7 @@ class _SettingsPageState extends State<SettingsPage> {
   void initState() {
     super.initState();
     _loadQrStatus();
+    _loadMealsStatus();
     _loadAbjadSetting(); // Load abjad setting saat inisialisasi
   }
 
@@ -48,6 +50,13 @@ class _SettingsPageState extends State<SettingsPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       _isQrEnabled = prefs.getBool('qr_enabled') ?? false;
+    });
+  }
+
+  Future<void> _loadMealsStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isQrEnabled = prefs.getBool('meals_enabled') ?? false;
     });
   }
 
@@ -64,6 +73,14 @@ class _SettingsPageState extends State<SettingsPage> {
     setState(() {
       _isQrEnabled = value;
       prefs.setBool('qr_enabled', value);
+    });
+  }
+
+  Future<void> _toggleMeals(bool value) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isMealsEnabled = value;
+      prefs.setBool('meals_enabled', value);
     });
   }
 
@@ -93,6 +110,15 @@ class _SettingsPageState extends State<SettingsPage> {
                 value: _isQrEnabled,
                 onChanged: (value) {
                   _toggleQr(value);
+                },
+              ),
+            ),
+            ListTile(
+              title: Text('Enable Meals'),
+              trailing: Switch(
+                value: _isMealsEnabled,
+                onChanged: (value) {
+                  _toggleMeals(value);
                 },
               ),
             ),

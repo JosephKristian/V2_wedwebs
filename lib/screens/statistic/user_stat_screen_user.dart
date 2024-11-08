@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wedweb/models/event_model.dart';
 import 'package:wedweb/models/session_model.dart';
 import 'package:wedweb/widgets/custom_app_bar.dart';
@@ -49,7 +50,7 @@ class _UserStatScreenUserState extends State<UserStatScreenUser>
   late AnimationController _animationController;
   late Animation<double> _animation;
   bool _isDropdownVisible = false;
-
+  String _selectedAbjad = 'A';
   final DataService _dataService = DataService();
 
   @override
@@ -79,7 +80,8 @@ class _UserStatScreenUserState extends State<UserStatScreenUser>
         'session_id': widget.session.session_id,
         'session_name': widget.session.session_name
       });
-      dropdownProvider.startStatisticsUpdater(widget.counterLabel);
+      dropdownProvider.startStatisticsUpdater();
+      _loadAbjadSetting();
     });
   }
 
@@ -88,6 +90,13 @@ class _UserStatScreenUserState extends State<UserStatScreenUser>
     _animationController.dispose();
 
     super.dispose();
+  }
+
+  Future<void> _loadAbjadSetting() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _selectedAbjad = prefs.getString('angpau_abjad') ?? 'A';
+    });
   }
 
   @override
@@ -400,10 +409,23 @@ class _UserStatScreenUserState extends State<UserStatScreenUser>
                                       ),
                                       StatCardAngpau(
                                         title:
-                                            "Envelope Counter ${widget.counterLabel}",
+                                            "Envelope Counter ${_selectedAbjad}",
                                         angpauCount:
                                             (data['total_envelope_counter']
                                                 .toString()),
+                                        elevation: 8.0,
+                                        borderRadius: 5.0,
+                                        onTap: () {
+                                          // Navigasi ke halaman RSVP Unable Attend
+                                          navigateToDetails(context,
+                                              'RsvpUnableAttend'); // Hanya dua argumen
+                                        },
+                                      ),
+                                      StatCardAngpau(
+                                        title: "Envelope Entrust",
+                                        angpauCount: (data[
+                                                'total_envelope_entrust_counter']
+                                            .toString()),
                                         elevation: 8.0,
                                         borderRadius: 5.0,
                                         onTap: () {

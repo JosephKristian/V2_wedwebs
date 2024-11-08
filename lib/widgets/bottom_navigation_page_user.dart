@@ -537,7 +537,7 @@ class _BottomNavigationPageUserState extends State<BottomNavigationPageUser>
                       icon: Icon(
                         Icons.print,
                         color: printerService.isPrinterConnected
-                            ? Colors.green
+                            ? const Color.fromARGB(255, 132, 255, 136)
                             : Colors.red,
                       ),
                       onPressed: () async {

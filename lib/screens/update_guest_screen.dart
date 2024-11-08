@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart' as android;
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -476,6 +477,8 @@ class _UpdateGuestScreenState extends State<UpdateGuestScreen> {
   @override
   Widget build(BuildContext context) {
     String sessionToCheck = widget.session.session_id!;
+    DateTime now = DateTime.now();
+    String formattedTime = DateFormat('HH:mm:ss').format(now);
     return FutureBuilder(
       future: _future,
       builder: (context, snapshot) {
@@ -497,7 +500,7 @@ class _UpdateGuestScreenState extends State<UpdateGuestScreen> {
                     icon: Icon(
                       Icons.print,
                       color: printerService.isPrinterConnected
-                          ? Colors.green
+                          ? const Color.fromARGB(255, 132, 255, 136)
                           : Colors.red,
                     ),
                     onPressed: () async {
@@ -579,9 +582,9 @@ class _UpdateGuestScreenState extends State<UpdateGuestScreen> {
                                             const SizedBox(height: 16),
                                           ],
                                         )
-                                      : Container();
+                                      : SizedBox.shrink();
                                 } else {
-                                  return Container();
+                                  return SizedBox.shrink();
                                 }
                               },
                             ),
@@ -763,7 +766,7 @@ class _UpdateGuestScreenState extends State<UpdateGuestScreen> {
                             ),
                             child: ListTile(
                               title: Text(
-                                'TIME',
+                                'CHECK-IN TIME',
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyMedium
@@ -774,7 +777,7 @@ class _UpdateGuestScreenState extends State<UpdateGuestScreen> {
                                     ),
                               ),
                               subtitle: Text(
-                                _selectedSession!.time,
+                                '${formattedTime}',
                                 style: AppStyles.titleTextIconStyle,
                               ),
                             ),
@@ -875,6 +878,47 @@ class _UpdateGuestScreenState extends State<UpdateGuestScreen> {
                           ),
                         ],
                       ),
+                    ),
+                    FutureBuilder(
+                      future: SharedPreferences.getInstance(),
+                      builder: (context, prefsSnapshot) {
+                        if (prefsSnapshot.hasData) {
+                          bool isMealsEnabled =
+                              prefsSnapshot.data?.getBool('meals_enabled') ??
+                                  false;
+                          return isMealsEnabled
+                              ? ListTile(
+                                  subtitle: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      TextFormField(
+                                        decoration: InputDecoration(
+                                          labelText: 'Meals',
+                                          border: OutlineInputBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                          ),
+                                        ),
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return 'Please enter the number of pax checked';
+                                          }
+                                          return null;
+                                        },
+                                        onSaved: (value) {
+                                          _checkIn!.meals = value!;
+                                        },
+                                      ),
+                                      const SizedBox(height: 16),
+                                    ],
+                                  ),
+                                )
+                              : SizedBox.shrink();
+                        } else {
+                          return SizedBox.shrink();
+                        }
+                      },
                     ),
 
                     Row(

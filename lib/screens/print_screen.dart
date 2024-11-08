@@ -416,7 +416,7 @@ class _PrintScreenState extends State<PrintScreen> {
               icon: Icon(
                 Icons.print,
                 color: printerService.isPrinterConnected
-                    ? Colors.green
+                    ? const Color.fromARGB(255, 132, 255, 136)
                     : Colors.red,
               ),
               onPressed: () async {
@@ -652,6 +652,50 @@ class _PrintScreenState extends State<PrintScreen> {
                                                   fontSize: 18),
                                         ),
                                       ),
+                                    ),
+                                    FutureBuilder(
+                                      future: SharedPreferences.getInstance(),
+                                      builder: (context, prefsSnapshot) {
+                                        if (prefsSnapshot.hasData) {
+                                          bool isMealsEnabled = prefsSnapshot
+                                                  .data
+                                                  ?.getBool('meals_enabled') ??
+                                              false;
+                                          return isMealsEnabled
+                                              ? Container(
+                                                  height:
+                                                      70, // Atur tinggi Container sesuai kebutuhan
+                                                  padding: EdgeInsets.all(
+                                                      5.0), // Atur padding di luar ListTile
+                                                  decoration: BoxDecoration(
+                                                    color: Colors
+                                                        .white, // Warna latar belakang
+                                                    border: Border.all(
+                                                        color: Colors
+                                                            .black), // Border hitam
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12.0), // Atur sudut rounded
+                                                  ),
+                                                  child: ListTile(
+                                                    title: Text('MEALS'),
+                                                    subtitle: Text(
+                                                      widget.updatedCheckIn!
+                                                          .meals!,
+                                                      style: AppStyles
+                                                          .titleTextStyle
+                                                          .copyWith(
+                                                              color: AppColors
+                                                                  .iconColor,
+                                                              fontSize: 18),
+                                                    ),
+                                                  ),
+                                                )
+                                              : SizedBox.shrink();
+                                        } else {
+                                          return SizedBox.shrink();
+                                        }
+                                      },
                                     ),
                                   ],
                                 ),

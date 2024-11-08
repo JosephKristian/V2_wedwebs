@@ -34,7 +34,7 @@ class EnvelopeEntrustScreen extends StatelessWidget {
     final TextEditingController nameController = TextEditingController();
 
     return AlertDialog(
-      title: Text('Entrust Envelope'),
+      title: Text('Entrust ${guest.name}'),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -100,9 +100,6 @@ class EnvelopeEntrustScreen extends StatelessWidget {
       );
     } catch (error) {
       // Tampilkan SnackBar kesalahan jika ada
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to entrust envelope: $error')),
-      );
     }
   }
 }

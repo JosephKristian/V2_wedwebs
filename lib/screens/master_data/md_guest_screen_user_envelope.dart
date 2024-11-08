@@ -1,23 +1,24 @@
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wedweb/models/event_model.dart';
 import 'package:wedweb/models/session_model.dart';
 import 'package:wedweb/screens/envelope_entrust_screen.dart';
+import 'package:wedweb/services/printer_service_android.dart';
+import 'package:wedweb/services/printer_service_ios.dart';
 import '../../services/generate_link_rsvp.dart';
 import '../update_guest_screen.dart';
 import 'insert_md_guest_screen_user.dart';
 
 import 'guest_detail_screen.dart';
-import 'templates_screen.dart';
-import 'guest_search.dart';
 
 import '../../screens/master_data/update_md_guest_screen.dart';
 import '../../models/guest_model.dart';
 import '../../services/database_helper.dart';
-import '../../widgets/custom_app_bar.dart';
 import '../../widgets/styles.dart';
 
 class MdGuestScreenUserEnvelope extends StatefulWidget {
@@ -140,6 +141,17 @@ class _MDGuestScreenUserState extends State<MdGuestScreenUserEnvelope> {
     });
   }
 
+  // Fungsi untuk memformat waktu saja dari createdAt
+  String _formatTimeOnly(String createdAt) {
+    final dateTimeUtc = DateTime.parse(createdAt).toUtc();
+
+    // Konversi dari UTC ke waktu lokal
+    final dateTimeLocal = dateTimeUtc.toLocal();
+
+    // Format untuk menampilkan waktu lokal
+    return DateFormat('HH:mm:ss').format(dateTimeLocal);
+  }
+
   void _addGuest() async {
     // Mendapatkan daftar session ID berdasarkan eventId
     List<String> sessionIds =
@@ -201,6 +213,7 @@ class _MDGuestScreenUserState extends State<MdGuestScreenUserEnvelope> {
         builder: (context) => GuestDetailScreen(
           guest: guest,
           idServer: widget.idServer,
+          session: widget.session,
         ),
       ),
     );
@@ -230,6 +243,10 @@ class _MDGuestScreenUserState extends State<MdGuestScreenUserEnvelope> {
 
   @override
   Widget build(BuildContext context) {
+    final isAndroid = Theme.of(context).platform == TargetPlatform.android;
+    final printerService = Provider.of<Printer1Service>(context);
+    final iosPrinterService = Provider.of<PrinterServiceIOS>(context);
+
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
@@ -324,6 +341,18 @@ class _MDGuestScreenUserState extends State<MdGuestScreenUserEnvelope> {
                                   });
                                 },
                               ),
+                            ),
+                            Container(
+                              width:
+                                  80, // Mengatur lebar untuk dropdown kategori
+                              child: IconButton(
+                                  onPressed: () {
+                                    _fetchGuestData();
+                                    _sessions = _fetchSessions();
+                                  },
+                                  icon: Icon(
+                                    Icons.refresh,
+                                  )),
                             ),
                           ],
                         ),
@@ -421,112 +450,240 @@ class _MDGuestScreenUserState extends State<MdGuestScreenUserEnvelope> {
                         }
 
                         // Widget Dismissible untuk mengedit atau menghapus tamu
-                        return CardGift(
-                          trailingWidget: Icon(
-                            FontAwesomeIcons.envelopeOpenText,
-                            color: Colors.white,
-                          ),
-                          // Widget untuk menampilkan informasi tamu di dalam card
-                          title: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                guest['name'], // Menampilkan nama tamu
-                                style: AppStyles.titleCardPrimaryTextStyle
-                                    .copyWith(color: Colors.white), // Gaya teks
+                        return GestureDetector(
+                          onLongPress: () {
+                            showModalBottomSheet(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return Wrap(
+                                  children: [
+                                    Consumer2<Printer1Service,
+                                        PrinterServiceIOS>(
+                                      builder: (context, printerService,
+                                              iosPrinterService, child) =>
+                                          Padding(
+                                        padding: EdgeInsets.fromLTRB(80, 10, 80,
+                                            0), // Atur jarak di sekitar tombol
+                                        child: ElevatedButton.icon(
+                                          onPressed: (isAndroid
+                                                  ? printerService
+                                                      .isPrinterConnected
+                                                  : iosPrinterService
+                                                      .isPrinterConnected!)
+                                              ? () async {
+                                                  if (isAndroid) {
+                                                    await printerService
+                                                        .printTicketEnvelopeBasic(
+                                                      guest: guest,
+                                                      timeCheckedIn:
+                                                          '(${_formatTimeOnly(guest['created_at'])})',
+                                                    );
+                                                  } else {
+                                                    // await iosPrinterService.printTicket(
+                                                    //   context: context,
+                                                    //   clientName: widget.client!.name,
+                                                    //   guestName: widget
+                                                    //       .guestBeforeUpdate!.name,
+                                                    //   qrCode: widget
+                                                    //       .guestBeforeUpdate!.guest_qr!,
+                                                    //   headcount: widget
+                                                    //       .updatedCheckIn!.pax_checked
+                                                    //       .toString(),
+                                                    //   category:
+                                                    //       widget.guestBeforeUpdate!.cat,
+                                                    //   eventDate: formatDate(
+                                                    //       widget.eventUpdate!.date),
+                                                    //   eventTime:
+                                                    //       widget.sessionUpdate!.time,
+                                                    //   location: widget
+                                                    //       .sessionUpdate!.location,
+                                                    //   sessionName: widget
+                                                    //       .sessionUpdate!.session_name,
+                                                    //   tableName: widget
+                                                    //                   .tableFromGuestDB !=
+                                                    //               null &&
+                                                    //           widget.tableFromGuestDB!
+                                                    //               .isNotEmpty
+                                                    //       ? widget.tableFromGuestDB!
+                                                    //       : (widget.selectedTableUpdate !=
+                                                    //                   null &&
+                                                    //               widget
+                                                    //                   .selectedTableUpdate!
+                                                    //                   .table_name
+                                                    //                   .isNotEmpty
+                                                    //           ? widget
+                                                    //               .selectedTableUpdate!
+                                                    //               .table_name
+                                                    //           : 'None'),
+                                                    // );
+                                                  }
+                                                }
+                                              : null,
+                                          icon: Icon(Icons.print),
+                                          label: Text('Print'),
+                                          style: ElevatedButton.styleFrom(
+                                            foregroundColor:
+                                                AppColors.appBarColor,
+                                            backgroundColor:
+                                                const Color.fromARGB(
+                                                    255, 248, 215, 137),
+                                            padding: EdgeInsets.symmetric(
+                                                vertical: 16,
+                                                horizontal:
+                                                    10), // Atur padding dalam tombol
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                      7), // Atur sudut rounded
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                          child: CardGift(
+                            trailingWidget: Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border:
+                                    Border.all(color: Colors.white, width: 2.0),
                               ),
-                              Text(
-                                guest['cat'] ??
-                                    'Blank', // Menampilkan kategori tamu
-                                style: AppStyles.dialogTitleTextStyle.copyWith(
-                                  color: Colors.white,
-                                  fontWeight:
-                                      FontWeight.bold, // Gaya teks tebal
-                                  fontSize: 16, // Ukuran teks
-                                ),
-                                overflow: TextOverflow
-                                    .ellipsis, // Membatasi teks agar tidak melampaui batas
+                              child: IconButton(
+                                icon: Icon(FontAwesomeIcons.envelopeOpenText,
+                                    color: Colors.white),
+                                onPressed: () {
+                                  if (guest['angpau_label'] != null &&
+                                      guest['angpau_label'].isNotEmpty) {
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return EnvelopeEntrustScreen(
+                                          idServer: widget.idServer,
+                                          role: widget.role,
+                                          clientId: widget.clientId,
+                                          clientName: widget.clientName,
+                                          event: widget.event,
+                                          guest: Guest.fromMap(guest),
+                                          session: widget.session,
+                                          name: widget.name,
+                                          counterLabel: widget.counterLabel,
+                                        );
+                                      },
+                                    );
+                                  } else {
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return AlertDialog(
+                                          title: Text("Error"),
+                                          content: Text(
+                                              "This guest has not provided an envelope and cannot entrust an angpau!"),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                              child: Text("OK"),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  }
+                                },
                               ),
-                              SizedBox(height: 5),
-                            ],
-                          ),
-                          subtitle: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 8.0,
-                                    vertical: 4.0), // Jarak dalam badge
-                                decoration: BoxDecoration(
-                                  color: Colors
-                                      .white, // Warna latar belakang badge
-                                  borderRadius: BorderRadius.circular(
-                                      10), // Radius sudut melengkung
-                                  border: Border.all(
-                                      color:
-                                          Colors.black), // Border warna hitam
+                            ),
+                            title: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${guest['name']}',
+                                  style: AppStyles.titleCardPrimaryTextStyle
+                                      .copyWith(color: Colors.white),
                                 ),
-                                child: Text(
-                                  guest['angpau_label']?.isNotEmpty == true
-                                      ? guest['angpau_label']
-                                      : '-', // Tampilkan '-' jika kosong
-                                  style: TextStyle(
-                                      fontSize:
-                                          14), // Sesuaikan gaya teks sesuai kebutuhan
+                                Text(
+                                  '${guest['cat']} \n (${_formatTimeOnly(guest['created_at'])})' ??
+                                      'Blank',
+                                  style:
+                                      AppStyles.dialogTitleTextStyle.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              ),
-                              SizedBox(width: 3),
-                              Container(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 8.0,
-                                    vertical: 4.0), // Jarak dalam badge
-                                decoration: BoxDecoration(
-                                  color: Colors
-                                      .white30, // Warna latar belakang badge
-                                  borderRadius: BorderRadius.circular(
-                                      10), // Radius sudut melengkung
-                                  border: Border.all(
-                                      color:
-                                          Colors.black), // Border warna hitam
+                                SizedBox(height: 5),
+                              ],
+                            ),
+                            subtitle: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 8.0, vertical: 4.0),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: Colors.black),
+                                  ),
+                                  child: Text(
+                                    guest['angpau_label']?.isNotEmpty == true
+                                        ? guest['angpau_label']
+                                        : '-',
+                                    style: TextStyle(fontSize: 14),
+                                  ),
                                 ),
-                                child: Text(
-                                  guest['angpauTitipan']?.isNotEmpty == true
-                                      ? guest['angpauTitipan']
-                                      : '', // Tampilkan '-' jika kosong
-                                  style: TextStyle(
-                                      fontSize:
-                                          14), // Sesuaikan gaya teks sesuai kebutuhan
+                                SizedBox(width: 3),
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 8.0, vertical: 4.0),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white30,
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(color: Colors.black),
+                                  ),
+                                  child: Flexible(
+                                    child: Text(
+                                      guest['angpauTitipan'] != null &&
+                                              guest['angpauTitipan'].isNotEmpty
+                                          ? (guest['angpauTitipan'].length > 11
+                                              ? guest['angpauTitipan']
+                                                      .substring(0, 11) +
+                                                  '...'
+                                              : guest['angpauTitipan'])
+                                          : '-',
+                                      style: TextStyle(fontSize: 14),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          leadingIcon: CircleAvatar(
+                              ],
+                            ),
+                            leadingIcon: CircleAvatar(
                               backgroundColor:
                                   const Color.fromARGB(255, 216, 103, 23),
                               child: Icon(
                                 FontAwesomeIcons.userGroup,
                                 color: AppColors.appBarColor,
-                              )), // Ikon di bagian kiri
-
-                          onTap: () {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return EnvelopeEntrustScreen(
-                                  idServer: widget.idServer,
-                                  role: widget.role,
-                                  clientId: widget.clientId,
-                                  clientName: widget.clientName,
-                                  event: widget.event,
-                                  guest: Guest.fromMap(
-                                      guest), // Konversi Map ke Guest
-                                  session: widget.session,
-                                  name: widget.name,
-                                  counterLabel: widget.counterLabel,
-                                );
-                              },
-                            );
-                          },
+                              ),
+                            ),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => GuestDetailScreen(
+                                    guest: guest,
+                                    idServer: widget.idServer,
+                                    session: widget.session,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
                         );
                       },
                     );
