@@ -158,6 +158,7 @@ class DatabaseHelper {
         pax INTEGER DEFAULT 1,
         tables TEXT,
         cat TEXT DEFAULT 'regular',
+        cat_label TEXT,
         synced BOOLEAN DEFAULT 0,
         created_at TEXT DEFAULT (datetime('now', 'localtime')),
         updated_at TEXT DEFAULT (datetime('now', 'localtime')),

@@ -553,7 +553,7 @@ class _MDGuestScreenUserState extends State<MdGuestScreenUserEnvelope> {
                                     Border.all(color: Colors.white, width: 2.0),
                               ),
                               child: IconButton(
-                                icon: Icon(FontAwesomeIcons.envelopeOpenText,
+                                icon: Icon(Icons.card_giftcard_outlined,
                                     color: Colors.white),
                                 onPressed: () {
                                   if (guest['angpau_label'] != null &&
@@ -646,19 +646,16 @@ class _MDGuestScreenUserState extends State<MdGuestScreenUserEnvelope> {
                                     borderRadius: BorderRadius.circular(10),
                                     border: Border.all(color: Colors.black),
                                   ),
-                                  child: Flexible(
-                                    child: Text(
-                                      guest['angpauTitipan'] != null &&
-                                              guest['angpauTitipan'].isNotEmpty
-                                          ? (guest['angpauTitipan'].length > 11
-                                              ? guest['angpauTitipan']
-                                                      .substring(0, 11) +
-                                                  '...'
-                                              : guest['angpauTitipan'])
-                                          : '-',
-                                      style: TextStyle(fontSize: 14),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
+                                  child: Text(
+                                    guest['angpauTitipan'] != null &&
+                                            guest['angpauTitipan'].isNotEmpty
+                                        ? (guest['angpauTitipan'].length > 11
+                                            ? guest['angpauTitipan']
+                                                    .substring(0, 11) +
+                                                '...'
+                                            : guest['angpauTitipan'])
+                                        : '-',
+                                    style: TextStyle(fontSize: 14),
                                   ),
                                 ),
                               ],

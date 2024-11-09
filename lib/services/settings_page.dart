@@ -32,7 +32,7 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   bool _isQrEnabled = false;
-  bool _isMealsEnabled = false;
+  bool _isCNEnabled = false;
   EventBus eventBus = EventBus();
   String _selectedAbjad = 'A'; // Abjad default
   List<String> _abjadList = List.generate(
@@ -42,7 +42,7 @@ class _SettingsPageState extends State<SettingsPage> {
   void initState() {
     super.initState();
     _loadQrStatus();
-    _loadMealsStatus();
+    _loadCNStatus();
     _loadAbjadSetting(); // Load abjad setting saat inisialisasi
   }
 
@@ -53,10 +53,10 @@ class _SettingsPageState extends State<SettingsPage> {
     });
   }
 
-  Future<void> _loadMealsStatus() async {
+  Future<void> _loadCNStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      _isQrEnabled = prefs.getBool('meals_enabled') ?? false;
+      _isCNEnabled = prefs.getBool('CN_enabled') ?? false;
     });
   }
 
@@ -76,11 +76,11 @@ class _SettingsPageState extends State<SettingsPage> {
     });
   }
 
-  Future<void> _toggleMeals(bool value) async {
+  Future<void> _toggleCN(bool value) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      _isMealsEnabled = value;
-      prefs.setBool('meals_enabled', value);
+      _isCNEnabled = value;
+      prefs.setBool('CN_enabled', value);
     });
   }
 
@@ -114,11 +114,11 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
             ListTile(
-              title: Text('Enable Meals'),
+              title: Text('Enable Category Number'),
               trailing: Switch(
-                value: _isMealsEnabled,
+                value: _isCNEnabled,
                 onChanged: (value) {
-                  _toggleMeals(value);
+                  _toggleCN(value);
                 },
               ),
             ),
