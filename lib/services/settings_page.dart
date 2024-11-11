@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:event_bus/event_bus.dart';
-import 'package:wedweb/models/event_model.dart';
-import 'package:wedweb/models/session_model.dart';
-import 'package:wedweb/screens/dashboard_user_screen.dart';
-import 'package:wedweb/services/abjad_event.dart';
-import 'package:wedweb/services/database_helper.dart';
+import 'package:wedwebs/models/event_model.dart';
+import 'package:wedwebs/models/session_model.dart';
+import 'package:wedwebs/screens/dashboard_user_screen.dart';
+import 'package:wedwebs/services/abjad_event.dart';
+import 'package:wedwebs/services/database_helper.dart';
 
 class SettingsPage extends StatefulWidget {
   final String role;

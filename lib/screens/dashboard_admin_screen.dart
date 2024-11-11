@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:wedweb/screens/intro_user_screen.dart';
+import 'package:wedwebs/screens/intro_user_screen.dart';
 import '../widgets/bottom_navigation_page.dart';
 import '../services/dropdown_provider.dart';
 
