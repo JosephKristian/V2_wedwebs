@@ -122,6 +122,7 @@ class Printer1Service with ChangeNotifier {
       try {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         bool isQrEnabled = prefs.getBool('qr_enabled') ?? false;
+        bool isAngpauEnabled = prefs.getBool('Angpau_enabled') ?? false;
 
         _printer.printNewLine();
         _printer.printCustom('$clientName', 2, 1);
@@ -129,6 +130,9 @@ class Printer1Service with ChangeNotifier {
 
         if (isQrEnabled) {
           _printer.printQRcode('$qrCode', 250, 205, 1);
+        }
+        if (isAngpauEnabled) {
+          _printer.printCustom('Angpau Label: $angpauLabel', 1, 0);
         }
 
         _printer.printNewLine();
@@ -139,12 +143,9 @@ class Printer1Service with ChangeNotifier {
         _printer.printCustom('Cat. Number: $catNumber', 1, 0);
         _printer.printCustom('Date: $eventDate', 1, 0);
         _printer.printCustom('Check-in time: $eventTime (${checkInTime})', 1, 0);
-        _printer.printNewLine();
+        _printer.printCustom('Table: $tableName', 1, 0);
         _printer.printCustom('Location: $location', 1, 0);
         _printer.printCustom('Session: $sessionName', 1, 0);
-        _printer.printNewLine();
-        _printer.printCustom('Table: $tableName', 1, 0);
-        _printer.printCustom('Angpau Label: $angpauLabel', 1, 0);
         _printer.printNewLine();
         _printer.printNewLine();
         _printer.printCustom('wedwebs.com', 2, 1);

@@ -230,6 +230,7 @@ class PrinterServiceIOS with ChangeNotifier {
       try {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         bool isQrEnabled = prefs.getBool('qr_enabled') ?? false;
+        bool isAngpauEnabled = prefs.getBool('Angpau_enabled') ?? false;
 
         // Ambil profile printer
         final profile = await _getProfile();
@@ -279,22 +280,22 @@ class PrinterServiceIOS with ChangeNotifier {
           'Check-in time: $eventTime ($checkInTime)',
           styles: PosStyles(align: PosAlign.left),
         );
-        bytes += generator.feed(1);
+        bytes += generator.text(
+          'Table: $tableName',
+          styles: PosStyles(align: PosAlign.left),
+        );
+        if (isAngpauEnabled) {
+          bytes += generator.text(
+            'Angpau Label: $angpauLabel',
+            styles: PosStyles(align: PosAlign.left),
+          );
+        }
         bytes += generator.text(
           'Location: $location',
           styles: PosStyles(align: PosAlign.left),
         );
         bytes += generator.text(
           'Session: $sessionName',
-          styles: PosStyles(align: PosAlign.left),
-        );
-        bytes += generator.feed(1);
-        bytes += generator.text(
-          'Table: $tableName',
-          styles: PosStyles(align: PosAlign.left),
-        );
-        bytes += generator.text(
-          'Angpau Label: $angpauLabel',
           styles: PosStyles(align: PosAlign.left),
         );
         bytes += generator.feed(2);
