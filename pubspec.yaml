@@ -42,7 +42,7 @@ dependencies:
   font_awesome_flutter: ^10.3.0
   event_bus: ^2.0.1
   esc_pos_bluetooth: ^0.4.1
-  
+  names_launcher: ^0.0.1
 
 dev_dependencies:
   flutter_test:
@@ -56,6 +56,15 @@ flutter_icons:
   ios: true
   image_path: "assets/images/logo-app.png"
   adaptive_icon_background: "#1F1D15"
+
+names_launcher:
+  name: "Wedwebs"
+  platforms:
+    android:
+      enable: true
+    ios:
+      enable: true
+
 
 flutter:
   uses-material-design: true

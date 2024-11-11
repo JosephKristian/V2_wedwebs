@@ -52,17 +52,27 @@ class _ScanQRScreenState extends State<ScanQRScreen>
   bool isLoading = false;
   late AnimationController _animationController;
   late Animation<double> _animation;
+  bool flip = true;
 
   @override
   void initState() {
     super.initState();
+    // Log parameter yang diterima
+    print('ScanQRScreen initialized with:');
+    print('role: ${widget.role}');
+    print('name: ${widget.name}');
+    print('clientId: ${widget.clientId}');
+    print('idServer: ${widget.idServer}');
+    print('clientName: ${widget.clientName}');
+    print('counterLabel: ${widget.counterLabel}');
+    print('event: ${widget.event}');
+    print('session: ${widget.session}');
     _animationController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     )..repeat(reverse: true);
     _animation =
         Tween<double>(begin: 0, end: 300).animate(_animationController);
-    checkPrinterConnection(); // Check printer connection status on init
   }
 
   @override
@@ -70,281 +80,6 @@ class _ScanQRScreenState extends State<ScanQRScreen>
     qrController?.dispose();
     _animationController.dispose();
     super.dispose();
-  }
-
-  Future<void> checkPrinterConnection() async {
-    if (Platform.isAndroid) {
-      final printerService =
-          Provider.of<Printer1Service>(context, listen: false)
-              as Printer1Service;
-      await printerService.checkPrinterConnection();
-    } else if (Platform.isIOS) {
-      final printerService =
-          Provider.of<Printer1Service>(context, listen: false)
-              as PrinterServiceIOS;
-      await printerService.checkPrinterConnection();
-    }
-  }
-
-  void _showDeviceSelectionSheet() {
-    print('Showing device selection sheet...');
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Select Printer',
-                style: AppStyles.titleTextStyle.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.appBarColor, // Sesuaikan warna teks
-                ),
-              ),
-              SizedBox(height: 16),
-              Expanded(
-                child: ListView(
-                  children: devices
-                      .map((device) => ListTile(
-                            title: Text(device.name ?? 'Unknown Device',
-                                style: AppStyles.captionTextStyle),
-                            onTap: () {
-                              print('Device selected: ${device.name}');
-                              setState(() {
-                                selectedDevice = device;
-                              });
-                              Navigator.pop(context);
-                            },
-                          ))
-                      .toList(),
-                ),
-              ),
-              SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  print('Search for Bluetooth devices');
-                  setState(() {
-                    getDevices();
-                  });
-                },
-                child: Text(
-                  'Search Devices',
-                  selectionColor: AppColors.iconColor,
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.appBarColor,
-                  foregroundColor: AppColors.iconColor,
-                  padding:
-                      EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                ),
-              ),
-              SizedBox(height: 16),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void getDevices() async {
-    print('Fetching devices...');
-    setState(() {
-      isLoading = true;
-    });
-
-    // Fetch devices based on platform
-    // Android
-    if (Platform.isAndroid) {
-      final printerService =
-          Provider.of<Printer1Service>(context, listen: false);
-      List<android.BluetoothDevice> devicesAndroid = [];
-      await printerService.getDevices(devicesAndroid);
-      setState(() {
-        devices = devicesAndroid; // Update devices here
-      });
-      print('Devices fetched: $devicesAndroid');
-    } else if (Platform.isIOS) {
-      // final printerService =
-      //     Provider.of<PrinterServiceIOS>(context, listen: false);
-      // List<ios.BluetoothDevice> devicesIOS = await printerService.getDevices();
-      // setState(() {
-      //   devices = devicesIOS; // Update devices here
-      // });
-      // print('Devices fetched');
-    }
-
-    setState(() {
-      isLoading = false;
-    });
-    print('Finished fetching devices');
-  }
-
-  Future<void> connectToPrinter() async {
-    print('Attempting to connect to printer...');
-    if (Platform.isAndroid) {
-      final printerService =
-          Provider.of<Printer1Service>(context, listen: false)
-              as Printer1Service;
-      if (printerService.isPrinterConnected) {
-        print('Printer is already connected');
-        _showNotification('Printer is already connected');
-      } else {
-        await printerService.connectToPrinter(selectedDevice);
-        if (printerService.isPrinterConnected) {
-          print('Printer successfully connected');
-          _showNotification('Printer successfully connected');
-        } else {
-          print('Failed to connect to printer');
-          _showNotification('Failed to connect to printer');
-        }
-      }
-    } else if (Platform.isIOS) {
-      final printerService =
-          Provider.of<Printer1Service>(context, listen: false)
-              as PrinterServiceIOS;
-      if (printerService.isPrinterConnected!) {
-        print('Printer is already connected');
-        _showNotification('Printer is already connected');
-      } else {
-        await printerService.connectToPrinter(selectedDevice);
-        if (printerService.isPrinterConnected!) {
-          print('Printer successfully connected');
-          _showNotification('Printer successfully connected');
-        } else {
-          print('Failed to connect to printer');
-          _showNotification('Failed to connect to printer');
-        }
-      }
-    }
-  }
-
-  void _showPrinterOptionsModal(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Printer Options'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ElevatedButton(
-                  onPressed: isLoading ? null : _showDeviceSelectionSheet,
-                  child: Text('Select Printer'),
-                  style: ElevatedButton.styleFrom(
-                    foregroundColor: AppColors.buttonColor,
-                    backgroundColor: AppColors.appBarColor,
-                  ),
-                ),
-                SizedBox(height: 16),
-
-                // Tombol untuk Connect, Disconnect, dan Print Test
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    CustomActionButton(
-                      icon: Icons.bluetooth,
-                      backgroundColor: AppColors.appBarColor,
-                      iconColor: AppColors.iconColorEdit,
-                      onPressed: isLoading
-                          ? null
-                          : () async {
-                              // Panggil fungsi untuk menghubungkan printer
-                              await connectToPrinter();
-                              final printerService =
-                                  Provider.of<Printer1Service>(context,
-                                      listen: false);
-                              // Periksa apakah printer terhubung
-                              if (printerService.isPrinterConnected) {
-                                // Jika terhubung, tutup dialog
-                                Navigator.of(context).pop();
-                              }
-                            },
-                      tooltip: 'Connect Printer',
-                      label: 'Connect',
-                      labelTextStyle: AppStyles.captionTextStyle,
-                    ),
-                    CustomActionButton(
-                      backgroundColor: AppColors.appBarColor,
-                      icon: Icons.bluetooth_disabled,
-                      iconColor: AppColors.iconColorWarning,
-                      onPressed: () {
-                        disconnectPrinter();
-                      },
-                      tooltip: 'Disconnect Printer',
-                      label: 'Disconnect',
-                      labelTextStyle: AppStyles.captionTextStyle,
-                    ),
-                    CustomActionButton(
-                      backgroundColor: AppColors.appBarColor,
-                      icon: Icons.print,
-                      iconColor: AppColors.iconColor,
-                      onPressed: printTest,
-                      tooltip: 'Print Test',
-                      label: 'Feed Test',
-                      labelTextStyle: AppStyles.captionTextStyle,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Close'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showNotification(String message) {
-    print('Showing notification: $message');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
-  Future<void> disconnectPrinter() async {
-    print('Attempting to disconnect from printer...');
-    if (Platform.isAndroid) {
-      final printerService =
-          Provider.of<Printer1Service>(context, listen: false)
-              as Printer1Service;
-      if (printerService.isPrinterConnected) {
-        await printerService.disconnectPrinter();
-        print('Printer successfully disconnected');
-        _showNotification('Printer successfully disconnected');
-      } else {
-        print('Printer is already disconnected');
-        _showNotification('Printer is already disconnected');
-      }
-    } else if (Platform.isIOS) {
-      final printerService =
-          Provider.of<Printer1Service>(context, listen: false)
-              as PrinterServiceIOS;
-      if (printerService.isPrinterConnected!) {
-        // await printerService.disconnectPrinter();
-        print('Printer successfully disconnected');
-        _showNotification('Printer successfully disconnected');
-      } else {
-        print('Printer is already disconnected');
-        _showNotification('Printer is already disconnected');
-      }
-    }
   }
 
   @override
@@ -370,41 +105,6 @@ class _ScanQRScreenState extends State<ScanQRScreen>
       child: Scaffold(
         appBar: CustomAppBar(
           title: 'Scan QR Code',
-          actions: [
-            Consumer<Printer1Service>(
-              builder: (context, printerService, child) => IconButton(
-                icon: Icon(
-                  Icons.print,
-                  color: printerService.isPrinterConnected
-                      ? Colors.green
-                      : Colors.red,
-                ),
-                onPressed: () async {
-                  if (printerService.isPrinterConnected) {
-                    printTest();
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: Text('Printer Status'),
-                        content: Text('Printer is connected.'),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: Text('OK'),
-                          ),
-                        ],
-                      ),
-                    );
-                  } else {
-                    _showPrinterOptionsModal(context);
-                    // Panggil fungsi untuk menampilkan modal
-                  }
-                },
-              ),
-            ),
-          ],
         ),
         body: Stack(
           children: <Widget>[
@@ -415,6 +115,7 @@ class _ScanQRScreenState extends State<ScanQRScreen>
                   child: Stack(
                     children: [
                       QRView(
+                        cameraFacing: CameraFacing.front,
                         key: qrKey,
                         overlay: QrScannerOverlayShape(
                           borderColor: AppColors.iconColor,
@@ -497,23 +198,54 @@ class _ScanQRScreenState extends State<ScanQRScreen>
     );
   }
 
+  // Fungsi untuk melakukan flip camera
   void _flipCamera() {
     if (qrController != null) {
+      print('CHECKSCANNER: Flipping camera...');
       qrController!.flipCamera(); // Fungsi flip camera dari controller QRView
+    } else {
+      print('CHECKSCANNER: qrController is null. Cannot flip camera.');
     }
   }
 
-  void _onQRViewCreated(QRViewController controller) {
+  Future<void> _flip() async {
+    print('CHECKSCANNER: _flip() called.');
+    if (qrController == null) {
+      print('CHECKSCANNER: qrController is null. Cannot flip camera.');
+      return;
+    }
+
+    if (Platform.isIOS && flip == true) {
+      try {
+        print('CHECKSCANNER: Flipping camera for iOS...');
+        await qrController!.flipCamera(); // Tunggu sampai flip selesai
+        setState(() {
+          flip = false; // Update flip state
+        });
+        print('CHECKSCANNER: Camera flipped successfully.');
+      } catch (e) {
+        print('CHECKSCANNER: Error flipping camera: $e');
+      }
+    } else if (!Platform.isIOS) {
+      print('CHECKSCANNER: Platform is not iOS, skipping flip.');
+    } else if (flip == false) {
+      print('CHECKSCANNER: Flip already done, skipping.');
+    }
+  }
+
+  void _onQRViewCreated(QRViewController controller) async {
+    print('CHECKSCANNER: QRView created, initializing controller.');
     qrController = controller;
 
-    controller.flipCamera();
-
     controller.scannedDataStream.listen((scanData) async {
+      print('CHECKSCANNER: Scanning data...');
       if (!isCameraPaused) {
+        _flip();
         setState(() {
           isCameraPaused = true;
           result = scanData;
         });
+        print('CHECKSCANNER: QR code scanned: ${scanData.code}');
         await _findGuest(scanData.code);
       }
     });
@@ -739,20 +471,6 @@ class _ScanQRScreenState extends State<ScanQRScreen>
       result = null;
     });
     qrController?.resumeCamera();
-    checkPrinterConnection(); // Refresh printer connection status
-  }
-
-  Future<void> printTest() async {
-    if (Platform.isAndroid) {
-      final printerService =
-          Provider.of<Printer1Service>(context, listen: false)
-              as Printer1Service;
-      await printerService.printTest(context);
-    } else if (Platform.isIOS) {
-      final printerService =
-          Provider.of<PrinterServiceIOS>(context, listen: false);
-      await printerService.printTest(context);
-    }
   }
 }
 

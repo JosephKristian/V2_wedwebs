@@ -32,6 +32,7 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   bool _isQrEnabled = false;
+  bool _isAngpauEnabled = false;
   bool _isCNEnabled = false;
   EventBus eventBus = EventBus();
   String _selectedAbjad = 'A'; // Abjad default
@@ -43,6 +44,7 @@ class _SettingsPageState extends State<SettingsPage> {
     super.initState();
     _loadQrStatus();
     _loadCNStatus();
+    _loadAngpauStatus();
     _loadAbjadSetting(); // Load abjad setting saat inisialisasi
   }
 
@@ -57,6 +59,13 @@ class _SettingsPageState extends State<SettingsPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       _isCNEnabled = prefs.getBool('CN_enabled') ?? false;
+    });
+  }
+
+  Future<void> _loadAngpauStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isAngpauEnabled = prefs.getBool('Angpau_enabled') ?? false;
     });
   }
 
@@ -81,6 +90,14 @@ class _SettingsPageState extends State<SettingsPage> {
     setState(() {
       _isCNEnabled = value;
       prefs.setBool('CN_enabled', value);
+    });
+  }
+
+  Future<void> _toggleAngpau(bool value) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isAngpauEnabled = value;
+      prefs.setBool('Angpau_enabled', value);
     });
   }
 
@@ -119,6 +136,15 @@ class _SettingsPageState extends State<SettingsPage> {
                 value: _isCNEnabled,
                 onChanged: (value) {
                   _toggleCN(value);
+                },
+              ),
+            ),
+            ListTile(
+              title: Text('Enable Angpau'),
+              trailing: Switch(
+                value: _isAngpauEnabled,
+                onChanged: (value) {
+                  _toggleAngpau(value);
                 },
               ),
             ),

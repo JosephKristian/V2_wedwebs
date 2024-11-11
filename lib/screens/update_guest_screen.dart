@@ -836,74 +836,93 @@ class _UpdateGuestScreenState extends State<UpdateGuestScreen> {
                       },
                     ),
 
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment
-                          .spaceBetween, // Untuk memberi jarak antar widget
-                      children: [
-                        Expanded(
-                          // Membuat SwitchListTile mengambil ruang yang tersedia
-                          child: SwitchListTile(
-                            title: Text('Envelope'),
-                            value: _isAngpauChecked,
-                            onChanged: (bool value) {
-                              setState(() {
-                                _isAngpauChecked = value;
-                              });
-                            },
-                          ),
-                        ),
-                        SizedBox(
-                          width: 80, // Atur lebar button
-                          child: ElevatedButton(
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return EnvelopeEntrustScreen(
-                                    idServer: widget.idServer,
-                                    role: widget.role,
-                                    clientId: widget.clientId,
-                                    clientName: widget.clientName,
-                                    counterLabel: widget.counterLabel,
-                                    event: widget.event,
-                                    session: widget
-                                        .session, // Ganti dengan instans Session yang sesuai
-                                    name: widget.name,
-                                    guest: _guest!,
-                                  );
-                                },
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  const Color.fromARGB(255, 218, 243, 255),
-                              shape: RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.circular(8), // Sudut rounded
-                              ),
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SizedBox(
-                                    height: 8), // Jarak antara ikon dan teks
-                                Icon(Icons.card_giftcard),
-                                SizedBox(
-                                    height: 4), // Jarak antara ikon dan teks
-                                Text(
-                                  'Add',
-                                  style: TextStyle(
-                                    fontSize: 12, // Ukuran font
-                                    color: Colors.blueGrey, // Warna teks
-                                  ),
-                                ),
-                                SizedBox(
-                                    height: 8), // Jarak antara ikon dan teks
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
+                    FutureBuilder(
+                      future: SharedPreferences.getInstance(),
+                      builder: (context, prefsSnapshot) {
+                        if (prefsSnapshot.hasData) {
+                          bool isQrEnabled =
+                              prefsSnapshot.data?.getBool('Angpau_enabled') ??
+                                  false;
+                          return isQrEnabled
+                              ? Row(
+                                  mainAxisAlignment: MainAxisAlignment
+                                      .spaceBetween, // Untuk memberi jarak antar widget
+                                  children: [
+                                    Expanded(
+                                      // Membuat SwitchListTile mengambil ruang yang tersedia
+                                      child: SwitchListTile(
+                                        title: Text('Envelope'),
+                                        value: _isAngpauChecked,
+                                        onChanged: (bool value) {
+                                          setState(() {
+                                            _isAngpauChecked = value;
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: 80, // Atur lebar button
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          showDialog(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return EnvelopeEntrustScreen(
+                                                idServer: widget.idServer,
+                                                role: widget.role,
+                                                clientId: widget.clientId,
+                                                clientName: widget.clientName,
+                                                counterLabel:
+                                                    widget.counterLabel,
+                                                event: widget.event,
+                                                session: widget
+                                                    .session, // Ganti dengan instans Session yang sesuai
+                                                name: widget.name,
+                                                guest: _guest!,
+                                              );
+                                            },
+                                          );
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: const Color.fromARGB(
+                                              255, 218, 243, 255),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                                8), // Sudut rounded
+                                          ),
+                                        ),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            SizedBox(
+                                                height:
+                                                    8), // Jarak antara ikon dan teks
+                                            Icon(Icons.card_giftcard),
+                                            SizedBox(
+                                                height:
+                                                    4), // Jarak antara ikon dan teks
+                                            Text(
+                                              'Add',
+                                              style: TextStyle(
+                                                fontSize: 12, // Ukuran font
+                                                color: Colors
+                                                    .blueGrey, // Warna teks
+                                              ),
+                                            ),
+                                            SizedBox(
+                                                height:
+                                                    8), // Jarak antara ikon dan teks
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : SizedBox.shrink();
+                        } else {
+                          return SizedBox.shrink();
+                        }
+                      },
                     ),
 
                     const SizedBox(height: 16),

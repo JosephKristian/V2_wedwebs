@@ -209,8 +209,22 @@ class PrinterServiceIOS with ChangeNotifier {
     required String tableName,
     required String? angpauLabel,
     required String checkInTime,
+    required BuildContext
+        context, // Tambahkan BuildContext untuk menampilkan dialog
   }) async {
     print('Attempting to print ticket...');
+
+    // Tampilkan dialog loading
+    showDialog(
+      context: context,
+      barrierDismissible:
+          false, // Dialog tidak bisa di-dismiss dengan mengetuk di luar
+      builder: (BuildContext context) {
+        return Center(
+          child: CircularProgressIndicator(),
+        );
+      },
+    );
 
     if (_isPrinterConnected!) {
       try {
@@ -306,6 +320,12 @@ class PrinterServiceIOS with ChangeNotifier {
     } else {
       print('Printer not connected');
     }
+
+    // Tunggu selama 2 detik sebelum menutup dialog loading
+    Future.delayed(Duration(seconds: 2), () {
+      Navigator.of(context, rootNavigator: true)
+          .pop(); // Menutup dialog loading
+    });
   }
 
   Future<void> printTicketEnvelope({
