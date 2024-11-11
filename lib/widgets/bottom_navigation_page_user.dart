@@ -602,7 +602,8 @@ class _BottomNavigationPageUserState extends State<BottomNavigationPageUser>
                                 if ((printerServiceIOS.isPrinterConnected ??
                                         false) ==
                                     true) {
-                                  printTest();
+                                  _showPrinterOptionsModal(
+                                      context);
                                   printerServiceIOS.checkPrinterConnection();
                                   showDialog(
                                     context: context,
@@ -751,26 +752,34 @@ class _BottomNavigationPageUserState extends State<BottomNavigationPageUser>
       ),
     );
   }
+void _navigateToScanQRScreen(BuildContext context, String clientId, String role) {
+  print('Navigating to ScanQRScreen');
+  print('idServer: ${widget.idServer}');
+  print('name: ${widget.name}');
+  print('clientId: $clientId');
+  print('role: $role');
+  print('clientName: ${widget.clientName}');
+  print('counterLabel: $_selectedAbjad');
+  print('event: ${widget.event}');
+  print('session: ${widget.session}');
 
-  void _navigateToScanQRScreen(
-      BuildContext context, String clientId, String role) {
-    print('Navigating to ScanQRScreen');
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ScanQRScreen(
-          idServer: widget.idServer,
-          name: widget.name,
-          clientId: clientId,
-          role: role,
-          clientName: widget.clientName,
-          counterLabel: _selectedAbjad,
-          event: widget.event,
-          session: widget.session,
-        ),
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => ScanQRScreen(
+        idServer: widget.idServer,
+        name: widget.name,
+        clientId: clientId,
+        role: role,
+        clientName: widget.clientName,
+        counterLabel: _selectedAbjad,
+        event: widget.event,
+        session: widget.session,
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   Future<bool> checkInternetConnection() async {
     final connectivityResult = await (Connectivity().checkConnectivity());

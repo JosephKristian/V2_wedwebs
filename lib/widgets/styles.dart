@@ -410,7 +410,7 @@ class StatCardCustom extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final cardWidth = constraints.maxWidth * 0.9; // Sesuaikan lebar card
+        final cardWidth = constraints.maxWidth * 0.5; // Sesuaikan lebar card
         final cardHeight =
             constraints.maxHeight * 0.35; // Sesuaikan tinggi card
 

@@ -43,6 +43,7 @@ dependencies:
   event_bus: ^2.0.1
   esc_pos_bluetooth: ^0.4.1
   flutter_bluetooth_basic: ^0.1.7
+  names_launcher: ^0.0.1
   
   
 
@@ -53,11 +54,20 @@ dev_dependencies:
   flutter_lints: ^4.0.0
   flutter_launcher_icons: "^0.10.0"
   
+
 flutter_icons:
   android: true
   ios: true
   image_path: "assets/images/logo-app.png"
   adaptive_icon_background: "#1F1D15"
+  
+names_launcher:
+  name: "Wedwebs"
+  platforms:
+    android:
+      enable: true
+    ios:
+      enable: true
 
 flutter:
   uses-material-design: true

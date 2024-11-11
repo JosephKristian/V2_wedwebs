@@ -281,8 +281,7 @@ class _UserStatScreenUserState extends State<UserStatScreenUser>
                                 ),
                                 SizedBox(height: 25),
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 5.0),
+                                  padding: const EdgeInsets.fromLTRB(30.0, 20.0, 30.0, 20.0),
                                   child: GridView.count(
                                     crossAxisCount: 3,
                                     crossAxisSpacing: 15,

@@ -159,7 +159,7 @@ class _MDGuestScreenUserState extends State<MDGuestScreenUser> {
           backgroundColor: AppColors.appBarColor,
           content: ConstrainedBox(
             constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width * 1.9, // Lebih lebar
+              
               minWidth:
                   MediaQuery.of(context).size.width * 1.9, // Minimal lebar
               maxHeight: MediaQuery.of(context).size.width * 1.9, // Lebih lebar

@@ -474,7 +474,8 @@ class _PrintScreenState extends State<PrintScreen> {
                       // Menganggap false sebagai true dan null sebagai false
                       if ((printerServiceIOS.isPrinterConnected ?? false) ==
                           true) {
-                        printTest();
+                        _showPrinterOptionsModal(
+                                      context);
                         printerServiceIOS.checkPrinterConnection();
                         showDialog(
                           context: context,
@@ -591,7 +592,7 @@ class _PrintScreenState extends State<PrintScreen> {
                                 child: GridView.count(
                                   crossAxisCount: 2, // Dua kolom
                                   childAspectRatio:
-                                      1.5, // Mengatur rasio aspek untuk menyesuaikan ukuran
+                                      3.0, // Mengatur rasio aspek untuk menyesuaikan ukuran
                                   shrinkWrap:
                                       true, // Agar GridView tidak mengambil lebih banyak ruang dari yang diperlukan
                                   physics:
@@ -644,7 +645,7 @@ class _PrintScreenState extends State<PrintScreen> {
                                       child: ListTile(
                                         title: Text('CATEGORY'),
                                         subtitle: Text(
-                                          widget.guestBeforeUpdate?.cat ??
+                                          "${widget.guestBeforeUpdate?.cat} (${widget.catNumber})" ?? 
                                               'None',
                                           style: AppStyles.titleTextStyle
                                               .copyWith(
@@ -820,7 +821,7 @@ class _PrintScreenState extends State<PrintScreen> {
                                                       : 'None'),
                                             );
                                           } else {
-                                            await iosPrinterService.printTicket(
+                                            await iosPrinterService.printTicket(context: context,
                                                 clientName: widget.client!.name,
                                                 guestName: widget
                                                     .guestBeforeUpdate!.name,
@@ -861,7 +862,7 @@ class _PrintScreenState extends State<PrintScreen> {
                                   label: Text('Print'),
                                   style: ElevatedButton.styleFrom(
                                     foregroundColor: AppColors.appBarColor,
-                                    backgroundColor: AppColors.iconColor,
+                                    backgroundColor: const Color.fromARGB(255, 255, 221, 142),
                                     padding: EdgeInsets.symmetric(
                                         vertical: 16,
                                         horizontal:
