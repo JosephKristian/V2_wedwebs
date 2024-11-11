@@ -108,12 +108,14 @@ class Printer1Service with ChangeNotifier {
     required String qrCode,
     required String headcount,
     required String category,
+    required String catNumber,
     required String eventDate,
     required String eventTime,
     required String location,
     required String sessionName,
     required String tableName,
     required String? angpauLabel,
+    required String checkInTime,
   }) async {
     print('Attempting to print ticket...');
     if (_isPrinterConnected) {
@@ -134,8 +136,10 @@ class Printer1Service with ChangeNotifier {
         _printer.printCustom('Headcount: $headcount', 1, 0);
         _printer.printNewLine();
         _printer.printCustom('Category: $category', 1, 0);
+        _printer.printCustom('Cat. Number: $catNumber', 1, 0);
         _printer.printCustom('Date: $eventDate', 1, 0);
-        _printer.printCustom('Time: $eventTime', 1, 0);
+        _printer.printCustom(
+            'Check-in time: $eventTime (${checkInTime})', 1, 0);
         _printer.printNewLine();
         _printer.printCustom('Location: $location', 1, 0);
         _printer.printCustom('Session: $sessionName', 1, 0);
@@ -143,7 +147,8 @@ class Printer1Service with ChangeNotifier {
         _printer.printCustom('Table: $tableName', 1, 0);
         _printer.printCustom('Angpau Label: $angpauLabel', 1, 0);
         _printer.printNewLine();
-        _printer.printCustom('WEDWEB.COM', 2, 1);
+        _printer.printNewLine();
+        _printer.printCustom('wedwebs.com', 2, 1);
         _printer.printNewLine();
         _printer.printNewLine();
 

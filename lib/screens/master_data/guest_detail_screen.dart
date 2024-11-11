@@ -136,7 +136,7 @@ class _GuestDetailScreenState extends State<GuestDetailScreen> {
           Provider.of<Printer1Service>(context, listen: false)
               as PrinterServiceIOS;
       if (printerService.isPrinterConnected!) {
-        await printerService.disconnectPrinter();
+        // await printerService.disconnectPrinter();
         print('Printer successfully disconnected');
         _showNotification('Printer successfully disconnected');
       } else {

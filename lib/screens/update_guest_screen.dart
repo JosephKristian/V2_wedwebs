@@ -178,6 +178,9 @@ class _UpdateGuestScreenState extends State<UpdateGuestScreen> {
             });
           }
 
+          DateTime now = DateTime.now();
+          String formattedTime = DateFormat('HH:mm:ss').format(now);
+
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -193,6 +196,10 @@ class _UpdateGuestScreenState extends State<UpdateGuestScreen> {
                 role: widget.role,
                 selectedTableUpdate: _selectedTable,
                 angpauLabel: angpauLabel,
+                catNumber: _checkIn!.note != null && _checkIn!.note!.isNotEmpty
+                    ? _checkIn!.note
+                    : '-',
+                checkInTime: formattedTime,
                 tableFromGuestDB: _tablesAtGuest,
                 clientId: widget.clientId,
                 clientName: widget.clientName,
@@ -374,39 +381,43 @@ class _UpdateGuestScreenState extends State<UpdateGuestScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    CustomActionButton(
-                      icon: Icons.bluetooth,
-                      backgroundColor: AppColors.appBarColor,
-                      iconColor: AppColors.iconColorEdit,
-                      onPressed: isLoading
-                          ? null
-                          : () async {
-                              // Panggil fungsi untuk menghubungkan printer
-                              await connectToPrinter();
-                              final printerService =
-                                  Provider.of<Printer1Service>(context,
-                                      listen: false);
-                              // Periksa apakah printer terhubung
-                              if (printerService.isPrinterConnected) {
-                                // Jika terhubung, tutup dialog
-                                Navigator.of(context).pop();
-                              }
-                            },
-                      tooltip: 'Connect Printer',
-                      label: 'Connect',
-                      labelTextStyle: AppStyles.captionTextStyle,
-                    ),
-                    CustomActionButton(
-                      backgroundColor: AppColors.appBarColor,
-                      icon: Icons.bluetooth_disabled,
-                      iconColor: AppColors.iconColorWarning,
-                      onPressed: () {
-                        disconnectPrinter();
-                      },
-                      tooltip: 'Disconnect Printer',
-                      label: 'Disconnect',
-                      labelTextStyle: AppStyles.captionTextStyle,
-                    ),
+                    if (Platform.isAndroid) ...[
+                      // Tombol Connect Printer, hanya tampil di Android
+                      CustomActionButton(
+                        icon: Icons.bluetooth,
+                        backgroundColor: AppColors.appBarColor,
+                        iconColor: AppColors.iconColorEdit,
+                        onPressed: isLoading
+                            ? null
+                            : () async {
+                                await connectToPrinter();
+                                final printerService =
+                                    Provider.of<Printer1Service>(
+                                  context,
+                                  listen: false,
+                                );
+                                if (printerService.isPrinterConnected) {
+                                  Navigator.of(context).pop();
+                                }
+                              },
+                        tooltip: 'Connect Printer',
+                        label: 'Connect',
+                        labelTextStyle: AppStyles.captionTextStyle,
+                      ),
+                      // Tombol Disconnect Printer, hanya tampil di Android
+                      CustomActionButton(
+                        backgroundColor: AppColors.appBarColor,
+                        icon: Icons.bluetooth_disabled,
+                        iconColor: AppColors.iconColorWarning,
+                        onPressed: () {
+                          disconnectPrinter();
+                        },
+                        tooltip: 'Disconnect Printer',
+                        label: 'Disconnect',
+                        labelTextStyle: AppStyles.captionTextStyle,
+                      ),
+                    ],
+                    // Tombol Feed Test, tampil di Android dan iOS
                     CustomActionButton(
                       backgroundColor: AppColors.appBarColor,
                       icon: Icons.print,
@@ -464,7 +475,7 @@ class _UpdateGuestScreenState extends State<UpdateGuestScreen> {
           Provider.of<Printer1Service>(context, listen: false)
               as PrinterServiceIOS;
       if (printerService.isPrinterConnected!) {
-        await printerService.disconnectPrinter();
+        // await printerService.disconnectPrinter();
         print('Printer successfully disconnected');
         _showNotification('Printer successfully disconnected');
       } else {
@@ -495,38 +506,83 @@ class _UpdateGuestScreenState extends State<UpdateGuestScreen> {
             appBar: CustomAppBar(
               title: 'Confirm Guest',
               actions: [
-                Consumer<Printer1Service>(
-                  builder: (context, printerService, child) => IconButton(
-                    icon: Icon(
-                      Icons.print,
-                      color: printerService.isPrinterConnected
-                          ? const Color.fromARGB(255, 132, 255, 136)
-                          : Colors.red,
-                    ),
-                    onPressed: () async {
-                      if (printerService.isPrinterConnected) {
-                        printTest();
-                        showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: Text('Printer Status'),
-                            content: Text('Printer is connected.'),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                child: Text('OK'),
-                              ),
-                            ],
+                Builder(
+                  builder: (context) {
+                    // Check if the platform is Android or iOS and choose the appropriate consumer
+                    if (Platform.isAndroid) {
+                      return Consumer<Printer1Service>(
+                        builder: (context, printerService, child) => IconButton(
+                          icon: Icon(
+                            Icons.print,
+                            color: printerService.isPrinterConnected
+                                ? const Color.fromARGB(255, 132, 255, 136)
+                                : Colors.red,
                           ),
-                        );
-                      } else {
-                        _showPrinterOptionsModal(context);
-                        // Panggil fungsi untuk menampilkan modal
-                      }
-                    },
-                  ),
+                          onPressed: () async {
+                            if (printerService.isPrinterConnected) {
+                              printTest();
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: Text('Printer Status'),
+                                  content: Text('Printer is connected.'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: Text('OK'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            } else {
+                              _showPrinterOptionsModal(
+                                  context); // Show printer options modal
+                            }
+                          },
+                        ),
+                      );
+                    } else if (Platform.isIOS) {
+                      return Consumer<PrinterServiceIOS>(
+                        builder: (context, printerServiceIOS, child) =>
+                            IconButton(
+                          icon: Icon(
+                            Icons.print,
+                            color:
+                                (printerServiceIOS.isPrinterConnected ?? false)
+                                    ? const Color.fromARGB(255, 132, 255, 136)
+                                    : Colors.red,
+                          ),
+                          onPressed: () async {
+                            if (printerServiceIOS.isPrinterConnected == true) {
+                              printTest();
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: Text('Printer Status'),
+                                  content: Text('Printer is connected.'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: Text('OK'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            } else {
+                              _showPrinterOptionsModal(
+                                  context); // Show printer options modal
+                            }
+                          },
+                        ),
+                      );
+                    } else {
+                      return Container(); // Return an empty container for unsupported platforms
+                    }
+                  },
                 ),
               ],
             ),
@@ -630,7 +686,7 @@ class _UpdateGuestScreenState extends State<UpdateGuestScreen> {
                       child: GridView.count(
                         crossAxisCount: 2, // Dua kolom
                         childAspectRatio:
-                            1.5, // Mengatur rasio aspek untuk menyesuaikan ukuran
+                            2.5, // Mengatur rasio aspek untuk menyesuaikan ukuran
                         shrinkWrap:
                             true, // Agar GridView tidak mengambil lebih banyak ruang dari yang diperlukan
                         physics:
@@ -638,178 +694,37 @@ class _UpdateGuestScreenState extends State<UpdateGuestScreen> {
                         mainAxisSpacing: 16.0, // Jarak vertikal antara item
                         crossAxisSpacing: 16.0, // Jarak horizontal antara item
                         children: [
-                          // Container untuk GUEST NAME
-                          Container(
-                            padding: EdgeInsets.all(
-                                5.0), // Atur padding di luar ListTile
-                            decoration: BoxDecoration(
-                              color: Colors.white, // Warna latar belakang
-                              border: Border.all(
-                                  color: Colors.black), // Border hitam
-                              borderRadius: BorderRadius.circular(
-                                  12.0), // Atur sudut rounded
-                            ),
-                            child: ListTile(
-                              title: Text(
-                                'GUEST NAME',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.normal,
-                                      color: Colors.black,
-                                    ),
-                              ),
-                              subtitle: Text(
-                                _guest!.name,
-                                style: AppStyles.titleTextStyle.copyWith(
-                                  color: AppColors.iconColor,
-                                  fontSize: 18,
-                                ),
-                              ),
-                            ),
+                          _buildInfoTile(
+                            context,
+                            title: 'GUEST NAME',
+                            value: _guest!.name,
                           ),
-
-                          // Container untuk CATEGORY
-                          Container(
-                            padding: EdgeInsets.all(
-                                5.0), // Atur padding di luar ListTile
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              border: Border.all(color: Colors.black),
-                              borderRadius: BorderRadius.circular(12.0),
-                            ),
-                            child: ListTile(
-                              title: Text(
-                                'CATEGORY',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.normal,
-                                      color: Colors.black87,
-                                    ),
-                              ),
-                              subtitle: Text(
-                                _guest!.cat,
-                                style: AppStyles.titleTextIconStyle,
-                              ),
-                            ),
+                          _buildInfoTile(
+                            context,
+                            title: 'CATEGORY',
+                            value: _guest!.cat,
                           ),
-
-                          // Container untuk DATE
-                          Container(
-                            padding: EdgeInsets.all(
-                                5.0), // Atur padding di luar ListTile
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              border: Border.all(color: Colors.black),
-                              borderRadius: BorderRadius.circular(12.0),
-                            ),
-                            child: ListTile(
-                              title: Text(
-                                'DATE',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.normal,
-                                      color: Colors.black87,
-                                    ),
-                              ),
-                              subtitle: Text(
-                                _selectedEvent!.date,
-                                style: AppStyles.titleTextIconStyle,
-                              ),
-                            ),
+                          _buildInfoTile(
+                            context,
+                            title: 'DATE',
+                            value: _selectedEvent!.date,
                           ),
-
-                          // Container untuk SESSION
-                          Container(
-                            padding: EdgeInsets.all(
-                                5.0), // Atur padding di luar ListTile
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              border: Border.all(color: Colors.black),
-                              borderRadius: BorderRadius.circular(12.0),
-                            ),
-                            child: ListTile(
-                              title: Text(
-                                'SESSION:',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.normal,
-                                      color: Colors.black87,
-                                    ),
-                              ),
-                              subtitle: Text(
-                                _selectedSession!.session_name,
-                                style: AppStyles.titleTextIconStyle,
-                              ),
-                            ),
+                          _buildInfoTile(
+                            context,
+                            title: 'SESSION',
+                            value: _selectedSession!.session_name,
                           ),
-
-                          // Container untuk TIME
-                          Container(
-                            padding: EdgeInsets.all(
-                                5.0), // Atur padding di luar ListTile
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              border: Border.all(color: Colors.black),
-                              borderRadius: BorderRadius.circular(12.0),
-                            ),
-                            child: ListTile(
-                              title: Text(
-                                'CHECK-IN TIME',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.normal,
-                                      color: Colors.black87,
-                                    ),
-                              ),
-                              subtitle: Text(
-                                '${formattedTime}',
-                                style: AppStyles.titleTextIconStyle,
-                              ),
-                            ),
+                          _buildInfoTile(
+                            context,
+                            title: 'CHECK-IN TIME',
+                            value: formattedTime,
                           ),
-
-                          // Container untuk ANGPAU jika diaktifkan
                           if (_isAngpauChecked)
-                            Container(
-                              padding: EdgeInsets.all(
-                                  5.0), // Atur padding di luar ListTile
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                border: Border.all(color: Colors.black),
-                                borderRadius: BorderRadius.circular(12.0),
-                              ),
-                              child: ListTile(
-                                title: Text(
-                                  'ENVELOPE',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.copyWith(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.normal,
-                                        color: Colors.black87,
-                                      ),
-                                ),
-                                subtitle: Text(
+                            _buildInfoTile(
+                              context,
+                              title: 'ENVELOPE',
+                              value:
                                   '$_selectedAbjad${(_angpauCounter + 1).toString().padLeft(3, '0')}',
-                                  style: AppStyles.titleTextIconStyle,
-                                ),
-                              ),
                             ),
                         ],
                       ),
@@ -1018,6 +933,44 @@ class _UpdateGuestScreenState extends State<UpdateGuestScreen> {
             ),
           );
         }
+      },
+    );
+  }
+
+  Widget _buildInfoTile(BuildContext context,
+      {required String title, required String value}) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        double fontSize = constraints.maxWidth *
+            0.04; // Ukuran font yang proporsional dengan lebar
+        double padding = constraints.maxWidth * 0.02; // Padding proporsional
+
+        return Container(
+          padding: EdgeInsets.all(padding),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border.all(color: Colors.black),
+            borderRadius: BorderRadius.circular(12.0),
+          ),
+          child: ListTile(
+            title: Text(
+              title,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontSize: fontSize,
+                    fontWeight: FontWeight.normal,
+                    color: Colors.black87,
+                  ),
+            ),
+            subtitle: Text(
+              value,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontSize:
+                        fontSize * 1.5, // Font size lebih besar untuk subtitle
+                    color: AppColors.iconColor,
+                  ),
+            ),
+          ),
+        );
       },
     );
   }
