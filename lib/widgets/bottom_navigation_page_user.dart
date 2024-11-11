@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:event_bus/event_bus.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart' as android;
+import 'package:esc_pos_bluetooth/esc_pos_bluetooth.dart' as ios;
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -285,6 +286,13 @@ class _BottomNavigationPageUserState extends State<BottomNavigationPageUser>
                               print('Device selected: ${device.name}');
                               setState(() {
                                 selectedDevice = device;
+                                if (Platform.isIOS) {
+                                  final printerService =
+                                      Provider.of<PrinterServiceIOS>(context,
+                                          listen: false);
+                                  printerService.selectDevice(device);
+                                  printerService.connectToPrinter(device);
+                                }
                               });
                               Navigator.pop(context);
                             },
@@ -340,13 +348,14 @@ class _BottomNavigationPageUserState extends State<BottomNavigationPageUser>
       });
       print('Devices fetched: $devicesAndroid');
     } else if (Platform.isIOS) {
-      // final printerService =
-      //     Provider.of<PrinterServiceIOS>(context, listen: false);
-      // List<ios.BluetoothDevice> devicesIOS = await printerService.getDevices();
-      // setState(() {
-      //   devices = devicesIOS; // Update devices here
-      // });
-      // print('Devices fetched');
+      final printerService =
+          Provider.of<PrinterServiceIOS>(context, listen: false);
+      await printerService.getDevices();
+      setState(() {
+        // Update `devices` with the latest list from printerService
+        devices = printerService.devices; // Pastikan ada getter untuk _devices
+      });
+      print('Devices fetched');
     }
 
     setState(() {
@@ -418,39 +427,43 @@ class _BottomNavigationPageUserState extends State<BottomNavigationPageUser>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    CustomActionButton(
-                      icon: Icons.bluetooth,
-                      backgroundColor: AppColors.appBarColor,
-                      iconColor: AppColors.iconColorEdit,
-                      onPressed: isLoading
-                          ? null
-                          : () async {
-                              // Panggil fungsi untuk menghubungkan printer
-                              await connectToPrinter();
-                              final printerService =
-                                  Provider.of<Printer1Service>(context,
-                                      listen: false);
-                              // Periksa apakah printer terhubung
-                              if (printerService.isPrinterConnected) {
-                                // Jika terhubung, tutup dialog
-                                Navigator.of(context).pop();
-                              }
-                            },
-                      tooltip: 'Connect Printer',
-                      label: 'Connect',
-                      labelTextStyle: AppStyles.captionTextStyle,
-                    ),
-                    CustomActionButton(
-                      backgroundColor: AppColors.appBarColor,
-                      icon: Icons.bluetooth_disabled,
-                      iconColor: AppColors.iconColorWarning,
-                      onPressed: () {
-                        disconnectPrinter();
-                      },
-                      tooltip: 'Disconnect Printer',
-                      label: 'Disconnect',
-                      labelTextStyle: AppStyles.captionTextStyle,
-                    ),
+                    if (Platform.isAndroid) ...[
+                      // Tombol Connect Printer, hanya tampil di Android
+                      CustomActionButton(
+                        icon: Icons.bluetooth,
+                        backgroundColor: AppColors.appBarColor,
+                        iconColor: AppColors.iconColorEdit,
+                        onPressed: isLoading
+                            ? null
+                            : () async {
+                                await connectToPrinter();
+                                final printerService =
+                                    Provider.of<Printer1Service>(
+                                  context,
+                                  listen: false,
+                                );
+                                if (printerService.isPrinterConnected) {
+                                  Navigator.of(context).pop();
+                                }
+                              },
+                        tooltip: 'Connect Printer',
+                        label: 'Connect',
+                        labelTextStyle: AppStyles.captionTextStyle,
+                      ),
+                      // Tombol Disconnect Printer, hanya tampil di Android
+                      CustomActionButton(
+                        backgroundColor: AppColors.appBarColor,
+                        icon: Icons.bluetooth_disabled,
+                        iconColor: AppColors.iconColorWarning,
+                        onPressed: () {
+                          disconnectPrinter();
+                        },
+                        tooltip: 'Disconnect Printer',
+                        label: 'Disconnect',
+                        labelTextStyle: AppStyles.captionTextStyle,
+                      ),
+                    ],
+                    // Tombol Feed Test, tampil di Android dan iOS
                     CustomActionButton(
                       backgroundColor: AppColors.appBarColor,
                       icon: Icons.print,
@@ -508,7 +521,7 @@ class _BottomNavigationPageUserState extends State<BottomNavigationPageUser>
           Provider.of<Printer1Service>(context, listen: false)
               as PrinterServiceIOS;
       if (printerService.isPrinterConnected!) {
-        await printerService.disconnectPrinter();
+        // await printerService.disconnectPrinter();
         print('Printer successfully disconnected');
         _showNotification('Printer successfully disconnected');
       } else {
@@ -532,41 +545,95 @@ class _BottomNavigationPageUserState extends State<BottomNavigationPageUser>
             : CustomAppBar(
                 title: 'Usher ${widget.name} ( ${_selectedAbjad} )',
                 actions: [
-                  Consumer<Printer1Service>(
-                    builder: (context, printerService, child) => IconButton(
-                      icon: Icon(
-                        Icons.print,
-                        color: printerService.isPrinterConnected
-                            ? const Color.fromARGB(255, 132, 255, 136)
-                            : Colors.red,
-                      ),
-                      onPressed: () async {
-                        if (printerService.isPrinterConnected) {
-                          printTest();
-                          showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: Text('Printer Status'),
-                              content: Text('Printer is connected.'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: Text('OK'),
-                                ),
-                              ],
+                    Builder(
+                      builder: (context) {
+                        // Check if the platform is Android or iOS and choose the appropriate consumer
+                        if (Platform.isAndroid) {
+                          return Consumer<Printer1Service>(
+                            builder: (context, printerService, child) =>
+                                IconButton(
+                              icon: Icon(
+                                Icons.print,
+                                color: printerService.isPrinterConnected
+                                    ? Colors.red
+                                    : const Color.fromARGB(255, 132, 255, 136),
+                              ),
+                              onPressed: () async {
+                                if (printerService.isPrinterConnected) {
+                                  printTest();
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: Text('Printer Status'),
+                                      content: Text('Printer is connected.'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: Text('OK'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                } else {
+                                  setState(() {
+                                    getDevices();
+                                  });
+                                  _showPrinterOptionsModal(
+                                      context); // Show printer options modal
+                                }
+                              },
+                            ),
+                          );
+                        } else if (Platform.isIOS) {
+                          return Consumer<PrinterServiceIOS>(
+                            builder: (context, printerServiceIOS, child) =>
+                                IconButton(
+                              icon: Icon(
+                                Icons.print,
+                                color: (printerServiceIOS.isPrinterConnected ??
+                                        false) // Anggap false sebagai true, null sebagai false
+                                    ? const Color.fromARGB(255, 132, 255, 136)
+                                    : Colors.red,
+                              ),
+                              onPressed: () async {
+                                // Menganggap false sebagai true dan null sebagai false
+                                if ((printerServiceIOS.isPrinterConnected ??
+                                        false) ==
+                                    true) {
+                                  printTest();
+                                  printerServiceIOS.checkPrinterConnection();
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: Text('Printer Status'),
+                                      content: Text('Printer is connected.'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: Text('OK'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                } else {
+                                  print(
+                                      'PROFILBLUETOOTHDEVICES: ${printerServiceIOS.isPrinterConnected}');
+                                  _showPrinterOptionsModal(
+                                      context); // Show printer options modal
+                                }
+                              },
                             ),
                           );
                         } else {
-                          _showPrinterOptionsModal(context);
-                          // Panggil fungsi untuk menampilkan modal
+                          return Container(); // Return an empty container for unsupported platforms
                         }
                       },
                     ),
-                  ),
-                ],
-              ),
+                  ]),
         drawer: Drawer(
           backgroundColor: AppColors.appBarColor,
           child: ListView(

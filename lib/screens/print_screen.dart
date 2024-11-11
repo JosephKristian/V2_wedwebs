@@ -26,6 +26,8 @@ class PrintScreen extends StatefulWidget {
   final String guestId;
   final String idServer;
   final String? angpauLabel;
+  final String? catNumber;
+  final String? checkInTime;
   final Guest? guestBeforeUpdate;
   final Event? eventUpdate;
   final Session? sessionUpdate;
@@ -45,6 +47,8 @@ class PrintScreen extends StatefulWidget {
     required this.guestId,
     required this.idServer,
     required this.angpauLabel,
+    required this.catNumber,
+    required this.checkInTime,
     required this.guestBeforeUpdate,
     required this.eventUpdate,
     required this.sessionUpdate,
@@ -81,10 +85,14 @@ class _PrintScreenState extends State<PrintScreen> {
   }
 
   Future<void> _requestPermissions() async {
-    if (await Permission.locationWhenInUse.request().isGranted) {
-      // Permissions granted
-    } else {
-      _showDialog('Permissions not granted');
+    // Pastikan hanya dijalankan di Android
+    if (Platform.isAndroid) {
+      if (await Permission.locationWhenInUse.request().isGranted) {
+        // Permissions granted
+        print('Location permission granted');
+      } else {
+        _showDialog('Permissions not granted');
+      }
     }
   }
 
@@ -285,39 +293,43 @@ class _PrintScreenState extends State<PrintScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    CustomActionButton(
-                      icon: Icons.bluetooth,
-                      backgroundColor: AppColors.appBarColor,
-                      iconColor: AppColors.iconColorEdit,
-                      onPressed: isLoading
-                          ? null
-                          : () async {
-                              // Panggil fungsi untuk menghubungkan printer
-                              await connectToPrinter();
-                              final printerService =
-                                  Provider.of<Printer1Service>(context,
-                                      listen: false);
-                              // Periksa apakah printer terhubung
-                              if (printerService.isPrinterConnected) {
-                                // Jika terhubung, tutup dialog
-                                Navigator.of(context).pop();
-                              }
-                            },
-                      tooltip: 'Connect Printer',
-                      label: 'Connect',
-                      labelTextStyle: AppStyles.captionTextStyle,
-                    ),
-                    CustomActionButton(
-                      backgroundColor: AppColors.appBarColor,
-                      icon: Icons.bluetooth_disabled,
-                      iconColor: AppColors.iconColorWarning,
-                      onPressed: () {
-                        disconnectPrinter();
-                      },
-                      tooltip: 'Disconnect Printer',
-                      label: 'Disconnect',
-                      labelTextStyle: AppStyles.captionTextStyle,
-                    ),
+                    if (Platform.isAndroid) ...[
+                      // Tombol Connect Printer, hanya tampil di Android
+                      CustomActionButton(
+                        icon: Icons.bluetooth,
+                        backgroundColor: AppColors.appBarColor,
+                        iconColor: AppColors.iconColorEdit,
+                        onPressed: isLoading
+                            ? null
+                            : () async {
+                                await connectToPrinter();
+                                final printerService =
+                                    Provider.of<Printer1Service>(
+                                  context,
+                                  listen: false,
+                                );
+                                if (printerService.isPrinterConnected) {
+                                  Navigator.of(context).pop();
+                                }
+                              },
+                        tooltip: 'Connect Printer',
+                        label: 'Connect',
+                        labelTextStyle: AppStyles.captionTextStyle,
+                      ),
+                      // Tombol Disconnect Printer, hanya tampil di Android
+                      CustomActionButton(
+                        backgroundColor: AppColors.appBarColor,
+                        icon: Icons.bluetooth_disabled,
+                        iconColor: AppColors.iconColorWarning,
+                        onPressed: () {
+                          disconnectPrinter();
+                        },
+                        tooltip: 'Disconnect Printer',
+                        label: 'Disconnect',
+                        labelTextStyle: AppStyles.captionTextStyle,
+                      ),
+                    ],
+                    // Tombol Feed Test, tampil di Android dan iOS
                     CustomActionButton(
                       backgroundColor: AppColors.appBarColor,
                       icon: Icons.print,
@@ -391,7 +403,7 @@ class _PrintScreenState extends State<PrintScreen> {
           Provider.of<Printer1Service>(context, listen: false)
               as PrinterServiceIOS;
       if (printerService.isPrinterConnected!) {
-        await printerService.disconnectPrinter();
+        // await printerService.disconnectPrinter();
         print('Printer successfully disconnected');
         _showNotification('Printer successfully disconnected');
       } else {
@@ -411,38 +423,87 @@ class _PrintScreenState extends State<PrintScreen> {
       appBar: CustomAppBar(
         title: 'E-TICKET',
         actions: [
-          Consumer<Printer1Service>(
-            builder: (context, printerService, child) => IconButton(
-              icon: Icon(
-                Icons.print,
-                color: printerService.isPrinterConnected
-                    ? const Color.fromARGB(255, 132, 255, 136)
-                    : Colors.red,
-              ),
-              onPressed: () async {
-                if (printerService.isPrinterConnected) {
-                  printTest();
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: Text('Printer Status'),
-                      content: Text('Printer is connected.'),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: Text('OK'),
-                        ),
-                      ],
+          Builder(
+            builder: (context) {
+              // Check if the platform is Android or iOS and choose the appropriate consumer
+              if (Platform.isAndroid) {
+                return Consumer<Printer1Service>(
+                  builder: (context, printerService, child) => IconButton(
+                    icon: Icon(
+                      Icons.print,
+                      color: printerService.isPrinterConnected
+                          ? const Color.fromARGB(255, 132, 255, 136)
+                          : Colors.red,
                     ),
-                  );
-                } else {
-                  _showPrinterOptionsModal(context);
-                  // Panggil fungsi untuk menampilkan modal
-                }
-              },
-            ),
+                    onPressed: () async {
+                      if (printerService.isPrinterConnected) {
+                        printTest();
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: Text('Printer Status'),
+                            content: Text('Printer is connected.'),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text('OK'),
+                              ),
+                            ],
+                          ),
+                        );
+                      } else {
+                        _showPrinterOptionsModal(
+                            context); // Show printer options modal
+                      }
+                    },
+                  ),
+                );
+              } else if (Platform.isIOS) {
+                return Consumer<PrinterServiceIOS>(
+                  builder: (context, printerServiceIOS, child) => IconButton(
+                    icon: Icon(
+                      Icons.print,
+                      color: (printerServiceIOS.isPrinterConnected ??
+                              false) // Anggap false sebagai true, null sebagai false
+                          ? const Color.fromARGB(255, 132, 255, 136)
+                          : Colors.red,
+                    ),
+                    onPressed: () async {
+                      // Menganggap false sebagai true dan null sebagai false
+                      if ((printerServiceIOS.isPrinterConnected ?? false) ==
+                          true) {
+                        printTest();
+                        printerServiceIOS.checkPrinterConnection();
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: Text('Printer Status'),
+                            content: Text('Printer is connected.'),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text('OK'),
+                              ),
+                            ],
+                          ),
+                        );
+                      } else {
+                        print(
+                            'PROFILBLUETOOTHDEVICES: ${printerServiceIOS.isPrinterConnected}');
+                        _showPrinterOptionsModal(
+                            context); // Show printer options modal
+                      }
+                    },
+                  ),
+                );
+              } else {
+                return Container(); // Return an empty container for unsupported platforms
+              }
+            },
           ),
         ],
       ),
@@ -715,6 +776,7 @@ class _PrintScreenState extends State<PrintScreen> {
                                       ? () async {
                                           if (isAndroid) {
                                             await printerService.printTicket(
+                                              checkInTime: widget.checkInTime!,
                                               clientName: widget.client!.name,
                                               angpauLabel:
                                                   (widget.angpauLabel != null &&
@@ -722,6 +784,7 @@ class _PrintScreenState extends State<PrintScreen> {
                                                               .isNotEmpty)
                                                       ? widget.angpauLabel
                                                       : null,
+                                              catNumber: widget.catNumber!,
                                               guestName: widget
                                                   .guestBeforeUpdate!.name,
                                               qrCode: widget
@@ -758,42 +821,39 @@ class _PrintScreenState extends State<PrintScreen> {
                                             );
                                           } else {
                                             await iosPrinterService.printTicket(
-                                              context: context,
-                                              clientName: widget.client!.name,
-                                              guestName: widget
-                                                  .guestBeforeUpdate!.name,
-                                              qrCode: widget
-                                                  .guestBeforeUpdate!.guest_qr!,
-                                              headcount: widget
-                                                  .updatedCheckIn!.pax_checked
-                                                  .toString(),
-                                              category:
-                                                  widget.guestBeforeUpdate!.cat,
-                                              eventDate: formatDate(
-                                                  widget.eventUpdate!.date),
-                                              eventTime:
-                                                  widget.sessionUpdate!.time,
-                                              location: widget
-                                                  .sessionUpdate!.location,
-                                              sessionName: widget
-                                                  .sessionUpdate!.session_name,
-                                              tableName: widget
-                                                              .tableFromGuestDB !=
-                                                          null &&
-                                                      widget.tableFromGuestDB!
-                                                          .isNotEmpty
-                                                  ? widget.tableFromGuestDB!
-                                                  : (widget.selectedTableUpdate !=
-                                                              null &&
-                                                          widget
-                                                              .selectedTableUpdate!
-                                                              .table_name
-                                                              .isNotEmpty
-                                                      ? widget
-                                                          .selectedTableUpdate!
-                                                          .table_name
-                                                      : 'None'),
-                                            );
+                                                clientName: widget.client!.name,
+                                                guestName: widget
+                                                    .guestBeforeUpdate!.name,
+                                                qrCode: widget
+                                                    .guestBeforeUpdate!
+                                                    .guest_qr!,
+                                                headcount: widget.updatedCheckIn!.pax_checked
+                                                    .toString(),
+                                                category: widget
+                                                    .guestBeforeUpdate!.cat,
+                                                catNumber: widget.catNumber!,
+                                                eventDate: formatDate(
+                                                    widget.eventUpdate!.date),
+                                                eventTime:
+                                                    widget.sessionUpdate!.time,
+                                                location: widget
+                                                    .sessionUpdate!.location,
+                                                sessionName: widget
+                                                    .sessionUpdate!
+                                                    .session_name,
+                                                tableName: widget.tableFromGuestDB != null && widget.tableFromGuestDB!.isNotEmpty
+                                                    ? widget.tableFromGuestDB!
+                                                    : (widget.selectedTableUpdate != null &&
+                                                            widget
+                                                                .selectedTableUpdate!
+                                                                .table_name
+                                                                .isNotEmpty
+                                                        ? widget
+                                                            .selectedTableUpdate!
+                                                            .table_name
+                                                        : 'None'),
+                                                angpauLabel: (widget.angpauLabel != null && widget.angpauLabel!.isNotEmpty) ? widget.angpauLabel : null,
+                                                checkInTime: widget.checkInTime!);
                                           }
                                         }
                                       : null,

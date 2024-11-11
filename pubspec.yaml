@@ -31,7 +31,6 @@ dependencies:
   connectivity_plus: ^6.0.5
   sqflite: ^2.3.3+1
   esc_pos_utils: ^1.1.0
-  bluetooth_print: ^4.3.0
   crypto: ^3.0.5
   statistics: ^1.1.2
   fl_chart: ^0.69.0
@@ -42,6 +41,9 @@ dependencies:
   flutter_contacts: ^1.1.9+2
   font_awesome_flutter: ^10.3.0
   event_bus: ^2.0.1
+  esc_pos_bluetooth: ^0.4.1
+  flutter_bluetooth_basic: ^0.1.7
+  
   
 
 dev_dependencies:

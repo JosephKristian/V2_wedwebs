@@ -63,6 +63,7 @@ class _ScanQRScreenState extends State<ScanQRScreen>
     _animation =
         Tween<double>(begin: 0, end: 300).animate(_animationController);
     checkPrinterConnection(); // Check printer connection status on init
+    frontCam();
   }
 
   @override
@@ -337,7 +338,7 @@ class _ScanQRScreenState extends State<ScanQRScreen>
           Provider.of<Printer1Service>(context, listen: false)
               as PrinterServiceIOS;
       if (printerService.isPrinterConnected!) {
-        await printerService.disconnectPrinter();
+        // await printerService.disconnectPrinter();
         print('Printer successfully disconnected');
         _showNotification('Printer successfully disconnected');
       } else {
@@ -370,41 +371,6 @@ class _ScanQRScreenState extends State<ScanQRScreen>
       child: Scaffold(
         appBar: CustomAppBar(
           title: 'Scan QR Code',
-          actions: [
-            Consumer<Printer1Service>(
-              builder: (context, printerService, child) => IconButton(
-                icon: Icon(
-                  Icons.print,
-                  color: printerService.isPrinterConnected
-                      ? Colors.green
-                      : Colors.red,
-                ),
-                onPressed: () async {
-                  if (printerService.isPrinterConnected) {
-                    printTest();
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: Text('Printer Status'),
-                        content: Text('Printer is connected.'),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: Text('OK'),
-                          ),
-                        ],
-                      ),
-                    );
-                  } else {
-                    _showPrinterOptionsModal(context);
-                    // Panggil fungsi untuk menampilkan modal
-                  }
-                },
-              ),
-            ),
-          ],
         ),
         body: Stack(
           children: <Widget>[
@@ -501,6 +467,10 @@ class _ScanQRScreenState extends State<ScanQRScreen>
     if (qrController != null) {
       qrController!.flipCamera(); // Fungsi flip camera dari controller QRView
     }
+  }
+
+  void frontCam() {
+    qrController!.flipCamera(); // Fungsi flip camera dari controller QRView
   }
 
   void _onQRViewCreated(QRViewController controller) {

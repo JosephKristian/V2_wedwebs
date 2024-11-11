@@ -479,43 +479,11 @@ class _MDGuestScreenUserState extends State<MdGuestScreenUserEnvelope> {
                                                           '(${_formatTimeOnly(guest['created_at'])})',
                                                     );
                                                   } else {
-                                                    // await iosPrinterService.printTicket(
-                                                    //   context: context,
-                                                    //   clientName: widget.client!.name,
-                                                    //   guestName: widget
-                                                    //       .guestBeforeUpdate!.name,
-                                                    //   qrCode: widget
-                                                    //       .guestBeforeUpdate!.guest_qr!,
-                                                    //   headcount: widget
-                                                    //       .updatedCheckIn!.pax_checked
-                                                    //       .toString(),
-                                                    //   category:
-                                                    //       widget.guestBeforeUpdate!.cat,
-                                                    //   eventDate: formatDate(
-                                                    //       widget.eventUpdate!.date),
-                                                    //   eventTime:
-                                                    //       widget.sessionUpdate!.time,
-                                                    //   location: widget
-                                                    //       .sessionUpdate!.location,
-                                                    //   sessionName: widget
-                                                    //       .sessionUpdate!.session_name,
-                                                    //   tableName: widget
-                                                    //                   .tableFromGuestDB !=
-                                                    //               null &&
-                                                    //           widget.tableFromGuestDB!
-                                                    //               .isNotEmpty
-                                                    //       ? widget.tableFromGuestDB!
-                                                    //       : (widget.selectedTableUpdate !=
-                                                    //                   null &&
-                                                    //               widget
-                                                    //                   .selectedTableUpdate!
-                                                    //                   .table_name
-                                                    //                   .isNotEmpty
-                                                    //           ? widget
-                                                    //               .selectedTableUpdate!
-                                                    //               .table_name
-                                                    //           : 'None'),
-                                                    // );
+                                                    await iosPrinterService
+                                                        .printTicketEnvelopeBasic(
+                                                            guest: guest,
+                                                            timeCheckedIn:
+                                                                '(${_formatTimeOnly(guest['created_at'])})');
                                                   }
                                                 }
                                               : null,

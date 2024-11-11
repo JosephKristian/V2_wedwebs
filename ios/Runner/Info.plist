@@ -2,6 +2,27 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- kamera -->
+	<key>NSCameraUsageDescription</key>
+	<string>For Scanner</string>
+	<!-- bluetooth -->
+	<key>UIBackgroundModes</key>
+	<array>
+	<string>bluetooth-central</string>
+	</array>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>We need access to Bluetooth to connect to printers.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>We need Bluetooth to interact with your printer.</string>
+	<!-- lokasi -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>For Ip Bluetooth</string>
+	<!-- media -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>future function</string>
+	<!-- kontak -->
+	<key>NSContactsUsageDescription</key>
+	<string>For contacting</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
@@ -13,7 +34,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>wedweb</string>
+	<string>Wedwebs</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
